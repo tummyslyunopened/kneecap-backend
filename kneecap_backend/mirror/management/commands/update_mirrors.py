@@ -17,11 +17,6 @@ class Command(BaseCommand):
                 # Get or create mirror for this feed
                 mirror, created = RSSMirror.objects.get_or_create(
                     external_feed=feed,
-                    defaults={
-                        'title': feed.title,
-                        'external_feed_link': feed.link,
-                        'description': feed.description,
-                    }
                 )
 
                 if created:

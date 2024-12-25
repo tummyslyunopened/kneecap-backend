@@ -16,7 +16,7 @@ class RSSMirror(models.Model):
     mirrored_content = models.TextField(blank=True)  # Store the mirrored XML content
     last_updated = models.DateTimeField(null=True)   # Track when the mirror was last updated
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, update_mirror=True, **kwargs):
         """
         Override save to populate fields from external feed if they're not set
         and update the mirrored content.
@@ -30,13 +30,12 @@ class RSSMirror(models.Model):
             if not self.external_feed_link:
                 self.external_feed_link = self.external_feed.link
             
-            # If this is a new mirror (no ID yet), update the content immediately
-            if not self.pk:
-                super().save(*args, **kwargs)  # Save first to get an ID
-                self.update_mirror()
-                return  # update_mirror already saves the model
-        
+        # Call the original save
         super().save(*args, **kwargs)
+        
+        # If this is a new mirror, update the content
+        if update_mirror and self.external_feed and not self.mirrored_content:
+            self.update_mirror()
 
     def update_mirror(self):
         """Downloads and stores the content from the external feed."""
@@ -46,22 +45,21 @@ class RSSMirror(models.Model):
                 return False
 
             response = requests.get(self.external_feed.link)
-            response.raise_for_status()  # Raise an exception for bad status codes
+            response.raise_for_status()
             
             self.mirrored_content = response.text
             self.last_updated = timezone.now()
-            self.save()
+            self.save(update_mirror=False)  # Prevent infinite recursion
             
             logger.info(f"Successfully updated mirror {self.id} for feed {self.external_feed.title}")
             return True
 
-        except requests.RequestException as e:
+        except Exception as e:
             logger.error(f"Failed to update mirror {self.id}: {str(e)}")
             return False
 
     def get_mirror_content(self):
         """Returns the mirrored content, updating it first if necessary."""
-        # Update if we've never mirrored before or if it's been too long
         if not self.last_updated or (timezone.now() - self.last_updated).days >= 1:
             self.update_mirror()
         return self.mirrored_content
