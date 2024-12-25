@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class RSSFeed(models.Model):
-    title = models.CharField(max_length=200, default='')
+    title = models.CharField(max_length=500, default='')
     link = models.URLField()
     description = models.TextField(default='')
     pub_date = models.DateTimeField(auto_now_add=True)
@@ -57,7 +57,6 @@ class Episode(models.Model):
     description = models.TextField()
     pub_date = models.DateTimeField()
     podcast_url = models.URLField(max_length=200, blank=True, null=True)
-    downloaded = models.BooleanField(default=False)  # Default to False
     played = models.BooleanField(default=False)      # Default to False
     current_playback_time = models.DurationField(blank=True, null=True)  # Optional field
 
