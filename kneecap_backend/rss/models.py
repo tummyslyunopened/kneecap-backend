@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class RSSFeed(models.Model):
     title = models.CharField(max_length=500, default='')
-    link = models.URLField()
+    link = models.URLField(unique=True)
     description = models.TextField(default='')
     pub_date = models.DateTimeField(auto_now_add=True)
 
