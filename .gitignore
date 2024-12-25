@@ -31,3 +31,6 @@ Thumbs.db
 venv/
 env/
 ENV/
+
+# for testing data
+.data
