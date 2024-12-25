@@ -1,0 +1,28 @@
+<!-- kneecap_backend/rss/templates/rss/add_rss_feed.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add RSS Feed</title>
+</head>
+<body>
+    <h1>Add New RSS Feed</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Add RSS Feed</button>
+    </form>
+
+    <h2>Existing RSS Feeds</h2>
+    <ul>
+        {% for rss_feed in rss_feeds %}
+            <li>
+                {{ rss_feed.title }} - <a href="{{ rss_feed.link }}">{{ rss_feed.link }}</a>
+            </li>
+        {% empty %}
+            <li>No RSS feeds available.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
