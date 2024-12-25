@@ -35,3 +35,10 @@ ENV/
 # for testing data
 .data
 .scratch
+
+# Coverage Reports
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+htmlcov/
