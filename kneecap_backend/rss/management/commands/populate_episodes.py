@@ -7,5 +7,9 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         feeds = RSSFeed.objects.all()
         for feed in feeds:
-            feed.populate_episodes()  # Call the existing method to populate episodes
-            self.stdout.write(self.style.SUCCESS(f'Successfully populated episodes for {feed.title}'))
+            try:
+                feed.populate_episodes()  # Call the existing method to populate episodes
+                self.stdout.write(self.style.SUCCESS(f'Successfully populated episodes for {feed.title}'))
+            except:
+                self.stdout.write(self.style.ERROR(F'{feed} - failed to populate'))
+                pass

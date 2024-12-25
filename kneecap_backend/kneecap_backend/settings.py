@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'feed',
     'api',
     'rest_framework',
+    'opml',
 ]
 
 MIDDLEWARE = [
