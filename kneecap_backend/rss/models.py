@@ -40,21 +40,21 @@ class RSSFeed(models.Model):
                 pub_date=pub_date,
                 defaults={
                     'description': entry.description,
-                    'podcast_url': entry.enclosures[0].url if entry.enclosures else None
+                    'media': entry.enclosures[0].url if entry.enclosures else None
                 }
             )
 
             if created:
-                logger.info(f"Created episode: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.podcast_url}")
+                logger.info(f"Created episode: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.media}")
             else:
-                logger.info(f"Episode already exists: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.podcast_url}")
+                logger.info(f"Episode already exists: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.media}")
 
 class Episode(models.Model):
     rss_feed = models.ForeignKey(RSSFeed, related_name='episodes', on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     description = models.TextField()
     pub_date = models.DateTimeField()
-    podcast_url = models.URLField(max_length=200, blank=True, null=True)
+    media = models.URLField(max_length=200, blank=True, null=True)
     played = models.BooleanField(default=False)      # Default to False
     current_playback_time = models.DurationField(blank=True, null=True)  # Optional field
 

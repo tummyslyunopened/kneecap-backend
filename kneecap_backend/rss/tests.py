@@ -27,7 +27,7 @@ class RSSFeedTestCase(TestCase):
         # Optionally, check the first episode's title and podcast URL
         first_episode = episodes.first()
         self.assertIsNotNone(first_episode.title, "The episode title should not be None.")
-        self.assertIsNotNone(first_episode.podcast_url, "The podcast URL should not be None.")
+        self.assertIsNotNone(first_episode.media, "The podcast URL should not be None.")
 
     def test_no_duplicate_episodes(self):
         # Populate episodes the first time
