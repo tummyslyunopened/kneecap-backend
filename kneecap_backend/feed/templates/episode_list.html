@@ -11,7 +11,6 @@
         {% for episode in episodes %}
             <li>
                 <strong>{{ episode.title }}</strong><br>
-                <a href="{{ episode.link }}">Listen Now</a><br>
                 <em>Published on: {{ episode.pub_date|date:"F j, Y, g:i a" }}</em><br>
                 <p>{{ episode.description }}</p>
             </li>

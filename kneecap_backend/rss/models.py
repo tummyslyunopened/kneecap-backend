@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class RSSFeed(models.Model):
     title = models.CharField(max_length=500, default='')
-    link = models.URLField(unique=True)
+    link = models.URLField()
     description = models.TextField(default='')
     pub_date = models.DateTimeField(auto_now_add=True)
 
@@ -20,7 +20,7 @@ class RSSFeed(models.Model):
         
         # Log info when a new RSSFeed is created
         if self.pk is None:  # Check if the instance is being created
-            logger.info(f"Creating new RSSFeed: Title: {self.title}, Link: {self.link}")
+            logger.info(f"Creating new RSSFeed: Title: {self.title}")
 
         super().save(*args, **kwargs)  # Call the original save method
 
@@ -39,21 +39,19 @@ class RSSFeed(models.Model):
                 title=entry.title,
                 pub_date=pub_date,
                 defaults={
-                    'link': entry.link,
                     'description': entry.description,
                     'podcast_url': entry.enclosures[0].url if entry.enclosures else None
                 }
             )
 
             if created:
-                logger.info(f"Created episode: Title: {episode.title}, Link: {episode.link}, Published: {episode.pub_date}, Podcast URL: {episode.podcast_url}")
+                logger.info(f"Created episode: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.podcast_url}")
             else:
-                logger.info(f"Episode already exists: Title: {episode.title}, Link: {episode.link}, Published: {episode.pub_date}, Podcast URL: {episode.podcast_url}")
+                logger.info(f"Episode already exists: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.podcast_url}")
 
 class Episode(models.Model):
     rss_feed = models.ForeignKey(RSSFeed, related_name='episodes', on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
-    link = models.URLField()
     description = models.TextField()
     pub_date = models.DateTimeField()
     podcast_url = models.URLField(max_length=200, blank=True, null=True)
