@@ -18,7 +18,9 @@ from django.contrib import admin
 from django.urls import path, include
 from feed import urls as feed_urls
 from rss import urls as rss_urls
+from api import urls as api_urls
 urlpatterns = [
    path('feed/', include(feed_urls)),
    path('rss/', include(rss_urls)),
+   path('api/', include(api_urls)),
 ]
