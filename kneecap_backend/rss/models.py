@@ -7,41 +7,50 @@ from django.utils import timezone
 import uuid
 import os
 from django.conf import settings
-from xml.etree import ElementTree as ET
+
 logger = logging.getLogger(__name__)
+
 
 class Subscription(models.Model):
     link = models.URLField()
-    title = models.CharField(max_length=500, default='')
-    description = models.TextField(default='')
+    title = models.CharField(max_length=500, default="")
+    description = models.TextField(default="")
     pub_date = models.DateTimeField(auto_now_add=True)
     image = models.URLField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if not self.title or not self.description:  # Check if title or description is missing
+        if (
+            not self.title or not self.description
+        ):  # Check if title or description is missing
             feed = feedparser.parse(self.link)  # Parse the RSS feed
             self.title = feed.feed.title if not self.title else self.title
-            self.description = feed.feed.description if not self.description else self.description
-            self.image = feed.feed.image.href if hasattr(feed.feed, 'image') and hasattr(feed.feed.image, 'href') else self.image  # Get image URL
-        
-        # Log info when a new RSSFeed is created
+            self.description = (
+                feed.feed.description if not self.description else self.description
+            )
+            self.image = (
+                feed.feed.image.href
+                if hasattr(feed.feed, "image") and hasattr(feed.feed.image, "href")
+                else self.image
+            )  # Get image URL
         if self.pk is None:  # Check if the instance is being created
             logger.info(f"Creating new RSSFeed: Title: {self.title}")
-
         super().save(*args, **kwargs)
-
-        # If this is a new feed, update the mirrored content
-        if self.pk and not hasattr(self, 'mirror'):
+        if self.pk and not hasattr(self, "mirror"):
             self.download()
 
     def download(self):
-        """Downloads and stores the content from the external feed."""
         try:
             response = requests.get(self.link)
             response.raise_for_status()
             mirror, created = Feed.objects.get_or_create(
                 subscription=self,
-                defaults={'mirror': response.text, 'title':self.title, 'description':self.description, 'pub_date': self.pub_date, 'image': self.image}
+                defaults={
+                    "mirror": response.text,
+                    "title": self.title,
+                    "description": self.description,
+                    "pub_date": self.pub_date,
+                    "image": self.image,
+                },
             )
             if not created:
                 mirror.mirror = response.text
@@ -61,22 +70,27 @@ class Subscription(models.Model):
 
 class Feed(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    title = models.CharField(max_length=500, default='')
-    description = models.TextField(default='')
+    title = models.CharField(max_length=500, default="")
+    description = models.TextField(default="")
     pub_date = models.DateTimeField(auto_now_add=True)
     image = models.URLField(null=True, blank=True)
-    subscription = models.OneToOneField(Subscription, on_delete=models.CASCADE, related_name='mirror', null=True)
+    subscription = models.OneToOneField(
+        Subscription, on_delete=models.CASCADE, related_name="mirror", null=True
+    )
     mirror = models.TextField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def populate_episodes(self):
-        """Populate episodes using the mirrored content instead of fetching from the internet."""
         try:
             if not (self.mirror and self.subscription):
-                logger.warning(f"No external feed found for feed: {self.title}. Skipping Episode Population.")
+                logger.warning(
+                    f"No external feed found for feed: {self.title}. Skipping Episode Population."
+                )
             if not (self.mirror):
-                logger.warning(f"No content found for feed: {self.title}. Attempting Download of external content.")
+                logger.warning(
+                    f"No content found for feed: {self.title}. Attempting Download of external content."
+                )
                 self.subscription.download()
             feed = feedparser.parse(self.mirror)
             for entry in feed.entries:
@@ -86,23 +100,27 @@ class Feed(models.Model):
                     title=entry.title,
                     pub_date=pub_date,
                     defaults={
-                        'description': entry.description,
-                        'media': entry.enclosures[0].url if entry.enclosures else None
-                    }
+                        "description": entry.description,
+                        "media": entry.enclosures[0].url if entry.enclosures else None,
+                    },
                 )
                 if created:
-                    logger.info(f"Created episode: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.media}")
+                    logger.info(
+                        f"Created episode: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.media}"
+                    )
                 else:
-                    logger.info(f"Episode already exists: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.media}")
+                    logger.info(
+                        f"Episode already exists: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.media}"
+                    )
 
         except Exception as e:
             logger.error(f"Error populating episodes for feed {self.title}: {str(e)}")
 
-    
 
 class Episode(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    feed = models.ForeignKey(Feed, related_name='episodes', on_delete=models.CASCADE)
+
+    feed = models.ForeignKey(Feed, related_name="episodes", on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     description = models.TextField()
     pub_date = models.DateTimeField()
@@ -118,19 +136,23 @@ class Episode(models.Model):
             return False
 
         try:
-            base_url = self.media.split('?')[0]  # Remove query parameters
-            file_extension = os.path.splitext(base_url)[-1] or '.mp3'  # Default to .mp3 if no extension
+            base_url = self.media.split("?")[0]  # Remove query parameters
+            file_extension = (
+                os.path.splitext(base_url)[-1] or ".mp3"
+            )  # Default to .mp3 if no extension
             filename = f"{self.uuid}{file_extension}"
             response = requests.get(self.media, stream=True)
             response.raise_for_status()
-            os.makedirs(os.path.join(settings.MEDIA_ROOT, 'episodes'), exist_ok=True)
-            file_path = os.path.join('episodes', filename)
+            os.makedirs(os.path.join(settings.MEDIA_ROOT, "episodes"), exist_ok=True)
+            file_path = os.path.join("episodes", filename)
             full_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            with open(full_path, 'wb') as f:
+            with open(full_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
-            url_path = settings.MEDIA_URL.rstrip('/') + '/' + file_path.replace('\\', '/')
+            url_path = (
+                settings.MEDIA_URL.rstrip("/") + "/" + file_path.replace("\\", "/")
+            )
             self.url = url_path
             self.save()
             logger.info(f"Successfully downloaded episode: {self.title}")
