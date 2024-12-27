@@ -1,0 +1,20 @@
+[project]
+name = "kneecap_backend"
+version = "0.0.0"
+description = "Open Source RSS Generator and mirror"
+readme = "README.md"
+
+classifiers = [
+    "Framework :: Django",
+    "Programming Language :: Python :: 3",
+]
+
+license = { text = "MIT" }
+
+[tool.ruff]
+line-length = 99
+exclude = [
+    "**/migrations/*.py",
+    ".venv",
+    ".git",
+]
