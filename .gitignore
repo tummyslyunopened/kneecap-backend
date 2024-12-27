@@ -31,7 +31,7 @@ venv/
 env/
 ENV/
 .venv/
-activate
+activate/
 
 # for testing data
 .data
@@ -43,3 +43,5 @@ activate
 coverage.xml
 *.cover
 htmlcov/
+
+.ruff_cache/
