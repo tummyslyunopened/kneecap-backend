@@ -1,15 +1,26 @@
 [project]
-name = "kneecap_backend"
+name = "kneecap"
 version = "0.0.0"
 description = "Open Source RSS Generator and mirror"
 readme = "README.md"
-
 classifiers = [
     "Framework :: Django",
     "Programming Language :: Python :: 3",
 ]
+dependencies = [
+    "django >=5.1.4",
+    "djangorestframework >=3.15.2",
+    "feedparser >=6.0.11",
+    "python-dateutil >=2.9.0",
+    "requests >=2.32.3",
+]
 
-license = { text = "MIT" }
+
+[project.optional-dependencies]
+dev = [
+    "ruff >=0.8.4",
+    "coverage >=7.6.10",
+]
 
 [tool.ruff]
 line-length = 99

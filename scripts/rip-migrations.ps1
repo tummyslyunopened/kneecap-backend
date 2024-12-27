@@ -1,6 +1,6 @@
 # Delete all migration files
 Get-ChildItem -Path . -Filter "*.py" -Recurse | 
-    Where-Object { $_.Directory.Name -eq "migrations" -and $_.Name -ne "__init__.py" } | 
+    Where-Object { $_.Directory.Name -eq "migrations" -and $_.Name -ne "__init__.py" -and $_.Directory.FullName -notlike "*\.venv*" -and $_.Directory.FullName -notlike "*\activate*" } | 
     ForEach-Object {
         Write-Host "Deleting migration: $($_.FullName)" -ForegroundColor Yellow
         Remove-Item $_.FullName -Force

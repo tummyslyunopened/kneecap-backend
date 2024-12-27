@@ -24,7 +24,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-ROOT_URLCONF = "kneecap_backend.urls"
+ROOT_URLCONF = "kneecap.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -40,7 +40,7 @@ TEMPLATES = [
         },
     },
 ]
-WSGI_APPLICATION = "kneecap_backend.wsgi.application"
+WSGI_APPLICATION = "kneecap.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
