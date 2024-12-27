@@ -20,12 +20,16 @@ from feed import urls as feed_urls
 from rss import urls as rss_urls
 from api import urls as api_urls
 from opml import urls as opml_urls
-from mirror import urls as mirror_urls
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
    path('feed/', include(feed_urls)),
    path('rss/', include(rss_urls)),
    path('api/', include(api_urls)),
    path('api/opml/', include(opml_urls)),
-   path('mirror/', include(mirror_urls)),
 ]
+
+if settings.DEBUG:
+    # Serve media files in development
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
