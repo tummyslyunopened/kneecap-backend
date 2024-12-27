@@ -15,12 +15,14 @@ class RSSFeed(models.Model):
     link = models.URLField()
     description = models.TextField(default='')
     pub_date = models.DateTimeField(auto_now_add=True)
+    image = models.URLField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.title or not self.description:  # Check if title or description is missing
             feed = feedparser.parse(self.link)  # Parse the RSS feed
             self.title = feed.feed.title if not self.title else self.title
             self.description = feed.feed.description if not self.description else self.description
+            self.image = feed.feed.image.href if hasattr(feed.feed, 'image') and hasattr(feed.feed.image, 'href') else self.image  # Get image URL
         
         # Log info when a new RSSFeed is created
         if self.pk is None:  # Check if the instance is being created
