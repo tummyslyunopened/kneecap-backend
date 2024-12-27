@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
-from .models import RSSFeed
+from .models import RSSFeed, StrippedMirror
 from .forms import RSSFeedForm
+from django.http import HttpResponse, Http404
 
 def add_rss_feed(request):
     if request.method == 'POST':
@@ -14,3 +15,11 @@ def add_rss_feed(request):
     # Retrieve all RSS feeds to display below the form
     rss_feeds = RSSFeed.objects.all()
     return render(request, 'add_rss_feed.html', {'form': form, 'rss_feeds': rss_feeds})
+
+def stripped_mirror_view(request, id):
+    """Serve the stripped mirror content."""
+    try:
+        stripped_mirror = StrippedMirror.objects.get(id=id)
+        return HttpResponse(stripped_mirror.stripped_content, content_type='application/xml')
+    except StrippedMirror.DoesNotExist:
+        raise Http404("Stripped mirror not found.")
