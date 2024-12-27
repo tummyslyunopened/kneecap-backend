@@ -6,9 +6,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-   path('rss/', include(rss_urls)),
-   path('api/', include(api_urls)),
-   path('api/opml/', include(opml_urls)),
+    path("rss/", include(rss_urls)),
+    path("api/", include(api_urls)),
+    path("api/opml/", include(opml_urls)),
 ]
 
 if settings.DEBUG:

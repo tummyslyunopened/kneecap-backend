@@ -1,8 +1,9 @@
 from django.core.management.base import BaseCommand
 from rss.models import Subscription
 
+
 class Command(BaseCommand):
-    help = 'Updates mirrored content for all RSS feeds'
+    help = "Updates mirrored content for all RSS feeds"
 
     def handle(self, *args, **options):
         subscriptions = Subscription.objects.all()
@@ -19,9 +20,11 @@ class Command(BaseCommand):
                 self.stdout.write(f"Failed to update feed: {subscription.title}")
                 error_count += 1
 
-        self.stdout.write(self.style.SUCCESS(
-            f'Finished updating feeds. '
-            f'Successfully updated: {updated_count}, '
-            f'Errors: {error_count}, '
-            f'Total feeds: {subscriptions.count()}'
-        )) 
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Finished updating feeds. "
+                f"Successfully updated: {updated_count}, "
+                f"Errors: {error_count}, "
+                f"Total feeds: {subscriptions.count()}"
+            )
+        )
