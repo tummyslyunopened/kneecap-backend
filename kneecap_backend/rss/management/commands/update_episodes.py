@@ -9,7 +9,7 @@ class Command(BaseCommand):
         feeds = Feed.objects.all()
         for feed in feeds:
             try:
-                feed.populate_episodes()  # Call the existing method to populate episodes
+                feed.populate_episodes()
                 self.stdout.write(
                     self.style.SUCCESS(
                         f"Successfully populated episodes for {feed.title}"

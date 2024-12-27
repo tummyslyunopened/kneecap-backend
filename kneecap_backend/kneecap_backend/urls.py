@@ -10,6 +10,5 @@ urlpatterns = [
     path("api/", include(api_urls)),
     path("api/opml/", include(opml_urls)),
 ]
-
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

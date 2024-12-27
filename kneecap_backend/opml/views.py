@@ -14,13 +14,9 @@ class OPMLImportView(APIView):
     parser_classes = (MultiPartParser,)
 
     def try_create_feed(self, link):
-        """Attempt to create a feed"""
         try:
-            # First check if feed exists without making network request
             if Subscription.objects.filter(link=link).exists():
                 return {"success": True, "created": False, "error": None}
-
-            # If feed doesn't exist, create it (this will trigger network request)
             Subscription.objects.create(link=link)
             return {"success": True, "created": True, "error": None}
         except Exception as e:
@@ -33,26 +29,19 @@ class OPMLImportView(APIView):
             return Response(
                 {"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST
             )
-
         opml_file = request.FILES["file"]
-
         if not opml_file.name.endswith(".opml"):
             return Response(
                 {"error": "File must be an OPML file"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         try:
             tree = ET.parse(opml_file)
             root = tree.getroot()
-
-            # First attempt for all feeds
             feeds_results = []
             failed_feeds = []
             success_count = 0
             failure_count = 0
-
-            # First pass - try all feeds once
             for outline in root.findall(".//outline[@xmlUrl]"):
                 feed_result = {
                     "link": outline.get("xmlUrl"),
@@ -60,9 +49,7 @@ class OPMLImportView(APIView):
                     "status": "success",
                     "error": None,
                 }
-
                 result = self.try_create_feed(feed_result["link"])
-
                 if result["success"]:
                     feed_result["created"] = result["created"]
                     success_count += 1
@@ -71,17 +58,12 @@ class OPMLImportView(APIView):
                     feed_result["error"] = result["error"]
                     failure_count += 1
                     failed_feeds.append(feed_result)
-
                 feeds_results.append(feed_result)
-
-            # Second pass - retry failed feeds with delay
             if failed_feeds:
                 logger.info(f"Retrying {len(failed_feeds)} failed feeds...")
                 for failed_feed in failed_feeds:
-                    time.sleep(10)  # 10 second delay between retries
+                    time.sleep(10)
                     result = self.try_create_feed(failed_feed["link"])
-
-                    # Update the feed result in the original list
                     for feed in feeds_results:
                         if feed["link"] == failed_feed["link"]:
                             if result["success"]:
@@ -91,7 +73,6 @@ class OPMLImportView(APIView):
                                 success_count += 1
                                 failure_count -= 1
                             break
-
             return Response(
                 {
                     "summary": {
@@ -102,7 +83,6 @@ class OPMLImportView(APIView):
                     "feeds": feeds_results,
                 }
             )
-
         except ET.ParseError:
             return Response(
                 {"error": "Invalid OPML file"}, status=status.HTTP_400_BAD_REQUEST

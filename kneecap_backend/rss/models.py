@@ -19,10 +19,8 @@ class Subscription(models.Model):
     image = models.URLField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if (
-            not self.title or not self.description
-        ):  # Check if title or description is missing
-            feed = feedparser.parse(self.link)  # Parse the RSS feed
+        if not self.title or not self.description:
+            feed = feedparser.parse(self.link)
             self.title = feed.feed.title if not self.title else self.title
             self.description = (
                 feed.feed.description if not self.description else self.description
@@ -31,8 +29,8 @@ class Subscription(models.Model):
                 feed.feed.image.href
                 if hasattr(feed.feed, "image") and hasattr(feed.feed.image, "href")
                 else self.image
-            )  # Get image URL
-        if self.pk is None:  # Check if the instance is being created
+            )
+        if self.pk is None:
             logger.info(f"Creating new RSSFeed: Title: {self.title}")
         super().save(*args, **kwargs)
         if self.pk and not hasattr(self, "mirror"):
@@ -59,7 +57,6 @@ class Subscription(models.Model):
             self.save()
             logger.info(f"Successfully updated mirror for feed: {self.title}")
             return True
-
         except Exception as e:
             logger.error(f"Failed to update mirror for feed {self.title}: {str(e)}")
             return False
@@ -112,14 +109,12 @@ class Feed(models.Model):
                     logger.info(
                         f"Episode already exists: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.media}"
                     )
-
         except Exception as e:
             logger.error(f"Error populating episodes for feed {self.title}: {str(e)}")
 
 
 class Episode(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-
     feed = models.ForeignKey(Feed, related_name="episodes", on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -130,16 +125,12 @@ class Episode(models.Model):
     url = models.URLField(max_length=500, null=True, blank=True)
 
     def download(self):
-        """Downloads the episode media to local storage"""
         if not self.media:
             logger.warning(f"No media URL for episode: {self.title}")
             return False
-
         try:
-            base_url = self.media.split("?")[0]  # Remove query parameters
-            file_extension = (
-                os.path.splitext(base_url)[-1] or ".mp3"
-            )  # Default to .mp3 if no extension
+            base_url = self.media.split("?")[0]
+            file_extension = os.path.splitext(base_url)[-1] or ".mp3"
             filename = f"{self.uuid}{file_extension}"
             response = requests.get(self.media, stream=True)
             response.raise_for_status()
@@ -157,7 +148,6 @@ class Episode(models.Model):
             self.save()
             logger.info(f"Successfully downloaded episode: {self.title}")
             return True
-
         except Exception as e:
             logger.error(f"Failed to download episode {self.title}: {str(e)}")
             return False

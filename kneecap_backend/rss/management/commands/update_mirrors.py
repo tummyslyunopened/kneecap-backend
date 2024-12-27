@@ -9,7 +9,6 @@ class Command(BaseCommand):
         subscriptions = Subscription.objects.all()
         updated_count = 0
         error_count = 0
-
         for subscription in subscriptions:
             self.stdout.write(f"Updating feed: {subscription.title}")
             success = subscription.download()
@@ -19,7 +18,6 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(f"Failed to update feed: {subscription.title}")
                 error_count += 1
-
         self.stdout.write(
             self.style.SUCCESS(
                 f"Finished updating feeds. "

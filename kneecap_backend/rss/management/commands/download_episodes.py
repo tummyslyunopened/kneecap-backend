@@ -21,21 +21,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         hours = options["hours"]
         cutoff_time = timezone.now() - timedelta(hours=hours)
-
-        # Get episodes from last 24 hours that haven't been downloaded
         recent_episodes = Episode.objects.filter(
             pub_date__gte=cutoff_time, url__isnull=True, media__isnull=False
         )
-
         total_episodes = recent_episodes.count()
         self.stdout.write(f"Found {total_episodes} episodes to download")
-
         success_count = 0
         fail_count = 0
-
         for episode in recent_episodes:
             self.stdout.write(f"Downloading: {episode.title}")
-
             if episode.download():
                 success_count += 1
                 self.stdout.write(
@@ -46,8 +40,6 @@ class Command(BaseCommand):
                 self.stdout.write(
                     self.style.ERROR(f"Failed to download: {episode.title}")
                 )
-
-        # Final summary
         self.stdout.write("\nDownload Summary:")
         self.stdout.write(f"Total episodes: {total_episodes}")
         self.stdout.write(

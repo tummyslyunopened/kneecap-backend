@@ -1,16 +1,16 @@
-from django.urls import reverse  # Import reverse
+from django.urls import reverse
 from rest_framework import serializers
 from rss.models import Subscription, Episode
 
 
 class RSSFeedSerializer(serializers.ModelSerializer):
     episodes_count = serializers.IntegerField(read_only=True)
-    mirror = serializers.SerializerMethodField()  # Change to SerializerMethodField
+    mirror = serializers.SerializerMethodField()
 
     def get_mirror(self, obj):
-        request = self.context.get("request")  # Get the request context
-        url = reverse("mirror", kwargs={"uuid": obj.mirror.uuid})  # Resolve the URL
-        return request.build_absolute_uri(url)  # Construct full absolute URL
+        request = self.context.get("request")
+        url = reverse("mirror", kwargs={"uuid": obj.mirror.uuid})
+        return request.build_absolute_uri(url)
 
     class Meta:
         model = Subscription
