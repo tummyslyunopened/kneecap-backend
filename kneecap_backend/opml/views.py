@@ -1,10 +1,9 @@
-from django.shortcuts import render
 import xml.etree.ElementTree as ET
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser
-from rss.models import RSSFeed
+from rss.models import Subscription
 import logging
 import time
 
@@ -17,7 +16,7 @@ class OPMLImportView(APIView):
         """Attempt to create a feed"""
         try:
             # First check if feed exists without making network request
-            if RSSFeed.objects.filter(link=link).exists():
+            if Subscription.objects.filter(link=link).exists():
                 return {
                     'success': True,
                     'created': False,
@@ -25,7 +24,7 @@ class OPMLImportView(APIView):
                 }
             
             # If feed doesn't exist, create it (this will trigger network request)
-            feed = RSSFeed.objects.create(link=link)
+            feed = Subscription.objects.create(link=link)
             return {
                 'success': True,
                 'created': True,

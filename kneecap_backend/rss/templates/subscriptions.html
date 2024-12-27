@@ -16,9 +16,9 @@
 
     <h2>Existing RSS Feeds</h2>
     <ul>
-        {% for rss_feed in rss_feeds %}
+        {% for feed in feeds %}
             <li>
-                {{ rss_feed.title }} - <a href="{{ rss_feed.link }}">{{ rss_feed.link }}</a>
+                {{ feed.title }} - <a href="{{ feed.link }}">{{ feed.link }}</a>
             </li>
         {% empty %}
             <li>No RSS feeds available.</li>

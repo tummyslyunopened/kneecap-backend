@@ -1,8 +1,7 @@
 from django.urls import path
-from .views import add_rss_feed, stripped_mirror_view
+from .views import subscriptions, mirror 
 
 urlpatterns = [
-    path('add/', add_rss_feed, name='add_rss_feed'),
-    path('stripped/<int:id>/', stripped_mirror_view, name='stripped_mirror'),
-    # ... other URL patterns ...
+    path('subscriptions/', subscriptions, name='subscriptions'),
+    path('mirror/<str:uuid>/', mirror , name='mirror'),
 ]

@@ -1,7 +1,7 @@
 from django import forms
-from .models import RSSFeed
+from .models import Subscription
 
-class RSSFeedForm(forms.ModelForm):
+class SubscribeForm(forms.ModelForm):
     class Meta:
-        model = RSSFeed
+        model = Subscription
         fields = ['link']  # Only include the link field for the form

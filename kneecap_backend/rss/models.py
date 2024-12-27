@@ -8,12 +8,11 @@ import uuid
 import os
 from django.conf import settings
 from xml.etree import ElementTree as ET
-# Set up logging
 logger = logging.getLogger(__name__)
 
-class RSSFeed(models.Model):
-    title = models.CharField(max_length=500, default='')
+class Subscription(models.Model):
     link = models.URLField()
+    title = models.CharField(max_length=500, default='')
     description = models.TextField(default='')
     pub_date = models.DateTimeField(auto_now_add=True)
     image = models.URLField(null=True, blank=True)
@@ -33,26 +32,22 @@ class RSSFeed(models.Model):
 
         # If this is a new feed, update the mirrored content
         if self.pk and not hasattr(self, 'mirror'):
-            self.update_mirror()
+            self.download()
 
-    def update_mirror(self):
+    def download(self):
         """Downloads and stores the content from the external feed."""
         try:
             response = requests.get(self.link)
             response.raise_for_status()
-            
-            # Create or update the mirror
-            mirror, created = FeedMirror.objects.get_or_create(
-                rss_feed=self,
-                defaults={'content': response.text}
+            mirror, created = Feed.objects.get_or_create(
+                subscription=self,
+                defaults={'mirror': response.text, 'title':self.title, 'description':self.description, 'pub_date': self.pub_date, 'image': self.image}
             )
             if not created:
-                mirror.content = response.text
+                mirror.mirror = response.text
                 mirror.save()
-
             self.last_updated = timezone.now()
             self.save()
-            
             logger.info(f"Successfully updated mirror for feed: {self.title}")
             return True
 
@@ -63,20 +58,31 @@ class RSSFeed(models.Model):
     def __str__(self):
         return self.title
 
+
+class Feed(models.Model):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    title = models.CharField(max_length=500, default='')
+    description = models.TextField(default='')
+    pub_date = models.DateTimeField(auto_now_add=True)
+    image = models.URLField(null=True, blank=True)
+    subscription = models.OneToOneField(Subscription, on_delete=models.CASCADE, related_name='mirror', null=True)
+    mirror = models.TextField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
     def populate_episodes(self):
         """Populate episodes using the mirrored content instead of fetching from the internet."""
         try:
-            # Get the mirror content or return if none exists
-            if not hasattr(self, 'mirror'):
-                logger.warning(f"No mirror found for feed: {self.title}. Skipping episode population.")
-                return
-
-            feed = feedparser.parse(self.mirror.content)
+            if not (self.mirror and self.subscription):
+                logger.warning(f"No external feed found for feed: {self.title}. Skipping Episode Population.")
+            if not (self.mirror):
+                logger.warning(f"No content found for feed: {self.title}. Attempting Download of external content.")
+                self.subscription.download()
+            feed = feedparser.parse(self.mirror)
             for entry in feed.entries:
                 pub_date = parser.parse(entry.published)
-
                 episode, created = Episode.objects.get_or_create(
-                    rss_feed=self,
+                    feed=self,
                     title=entry.title,
                     pub_date=pub_date,
                     defaults={
@@ -84,7 +90,6 @@ class RSSFeed(models.Model):
                         'media': entry.enclosures[0].url if entry.enclosures else None
                     }
                 )
-
                 if created:
                     logger.info(f"Created episode: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.media}")
                 else:
@@ -93,108 +98,18 @@ class RSSFeed(models.Model):
         except Exception as e:
             logger.error(f"Error populating episodes for feed {self.title}: {str(e)}")
 
-class FeedMirror(models.Model):
-    rss_feed = models.OneToOneField(RSSFeed, on_delete=models.CASCADE, related_name='mirror')
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Mirror for {self.rss_feed.title}"
-
-class StrippedMirror(models.Model):
-    feed_mirror = models.OneToOneField(
-        'FeedMirror',
-        on_delete=models.CASCADE,
-        related_name='stripped_mirror'
-    )
-    stripped_content = models.TextField(
-        help_text="RSS content with only tracked parameters"
-    )
-    last_updated = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Stripped mirror for {self.feed_mirror}"
-
-    def generate_stripped_content(self):
-        """Generate stripped RSS content using only database model fields."""
-        rss_feed = self.feed_mirror.rss_feed
-        
-        # Create a new RSS feed structure
-        rss = ET.Element('rss', version='2.0')
-        channel = ET.SubElement(rss, 'channel')
-        
-        # Add channel level elements from RSSFeed model
-        title = ET.SubElement(channel, 'title')
-        title.text = rss_feed.title
-        
-        link = ET.SubElement(channel, 'link')
-        link.text = rss_feed.link
-        
-        description = ET.SubElement(channel, 'description')
-        description.text = rss_feed.description
-        
-        # Add image if available
-        if rss_feed.image:
-            image = ET.SubElement(channel, 'image')
-            image_url = ET.SubElement(image, 'url')
-            image_url.text = rss_feed.image
-            image_title = ET.SubElement(image, 'title')
-            image_title.text = rss_feed.title
-            image_link = ET.SubElement(image, 'link')
-            image_link.text = rss_feed.link
-        
-        # Add items from Episode model
-        for episode in rss_feed.episodes.all():
-            item = ET.SubElement(channel, 'item')
-            
-            # Add title
-            title = ET.SubElement(item, 'title')
-            title.text = episode.title
-            
-            # Add description
-            description = ET.SubElement(item, 'description')
-            description.text = episode.description
-            
-            # Add guid
-            guid = ET.SubElement(item, 'guid')
-            guid.text = str(episode.guid)
-            guid.set('isPermaLink', 'false')
-            
-            # Add pubDate
-            pub_date = ET.SubElement(item, 'pubDate')
-            pub_date.text = episode.pub_date.strftime('%a, %d %b %Y %H:%M:%S %z')
-            
-            # Add enclosure
-            if episode.media or episode.local_path:
-                enclosure = ET.SubElement(item, 'enclosure')
-                # Update the enclosure URL to include the base URL for local paths
-                enclosure.set('url', (settings.MEDIA_URL.rstrip('/') + episode.local_path) if episode.local_path else episode.media)
-                enclosure.set('type', 'audio/mpeg')  # Default to audio/mpeg
-                enclosure.set('length', '0')  # Default to 0 as we don't store file size
-        
-        # Convert to string with proper XML declaration and encoding
-        return '<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(rss, encoding='unicode')
-
-    def update(self):
-        """Update the stripped content and save"""
-        self.stripped_content = self.generate_stripped_content()
-        self.save()
-
-    class Meta:
-        verbose_name = "Stripped Mirror"
-        verbose_name_plural = "Stripped Mirrors"
+    
 
 class Episode(models.Model):
-    rss_feed = models.ForeignKey(RSSFeed, related_name='episodes', on_delete=models.CASCADE)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    feed = models.ForeignKey(Feed, related_name='episodes', on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     description = models.TextField()
     pub_date = models.DateTimeField()
     media = models.URLField(max_length=200, blank=True, null=True)
     played = models.BooleanField(default=False)
     current_playback_time = models.DurationField(blank=True, null=True)
-    guid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    local_path = models.URLField(max_length=500, null=True, blank=True)
+    url = models.URLField(max_length=500, null=True, blank=True)
 
     def download(self):
         """Downloads the episode media to local storage"""
@@ -203,32 +118,21 @@ class Episode(models.Model):
             return False
 
         try:
-            # Clean the URL to get just the base filename and extension
             base_url = self.media.split('?')[0]  # Remove query parameters
             file_extension = os.path.splitext(base_url)[-1] or '.mp3'  # Default to .mp3 if no extension
-            filename = f"{self.guid}{file_extension}"
-            
-            # Download the file
+            filename = f"{self.uuid}{file_extension}"
             response = requests.get(self.media, stream=True)
             response.raise_for_status()
-            
-            # Ensure the media directory exists
             os.makedirs(os.path.join(settings.MEDIA_ROOT, 'episodes'), exist_ok=True)
-            
-            # Save the file
             file_path = os.path.join('episodes', filename)
             full_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            
             with open(full_path, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
-            
-            # Store the URL path instead of file path
             url_path = settings.MEDIA_URL.rstrip('/') + '/' + file_path.replace('\\', '/')
-            self.local_path = url_path
+            self.url = url_path
             self.save()
-            
             logger.info(f"Successfully downloaded episode: {self.title}")
             return True
 

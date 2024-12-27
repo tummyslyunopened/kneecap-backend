@@ -24,7 +24,7 @@ class Command(BaseCommand):
         # Get episodes from last 24 hours that haven't been downloaded
         recent_episodes = Episode.objects.filter(
             pub_date__gte=cutoff_time,
-            local_path__isnull=True,
+            url__isnull=True,
             media__isnull=False
         )
         
