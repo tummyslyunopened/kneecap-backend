@@ -4,8 +4,10 @@ from api import urls as api_urls
 from opml import urls as opml_urls
 from django.conf import settings
 from django.conf.urls.static import static
+from dashboard.views import dashboard
 
 urlpatterns = [
+    path("", dashboard, name="dashboard"),
     path("rss/", include(rss_urls)),
     path("api/", include(api_urls)),
     path("api/opml/", include(opml_urls)),
