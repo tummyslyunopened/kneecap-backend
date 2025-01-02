@@ -22,9 +22,7 @@ class Subscription(models.Model):
         if not self.title or not self.description:
             feed = feedparser.parse(self.link)
             self.title = feed.feed.title if not self.title else self.title
-            self.description = (
-                feed.feed.description if not self.description else self.description
-            )
+            self.description = feed.feed.description if not self.description else self.description
             self.image = (
                 feed.feed.image.href
                 if hasattr(feed.feed, "image") and hasattr(feed.feed.image, "href")
@@ -78,6 +76,32 @@ class Feed(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def download_image(self):
+        if not self.image:
+            logger.warning(f"No image URL for feed: {self.title}")
+            return False
+        try:
+            base_url = self.image.split("?")[0]
+            file_extension = os.path.splitext(base_url)[-1] or ".jpg"
+            filename = f"{uuid.uuid4()}{file_extension}"
+            response = requests.get(self.image, stream=True)
+            response.raise_for_status()
+            os.makedirs(os.path.join(settings.MEDIA_ROOT, "images"), exist_ok=True)
+            file_path = os.path.join("images", filename)
+            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
+            with open(full_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+            url_path = settings.MEDIA_URL.rstrip("/") + "/" + file_path.replace("\\", "/")
+            self.image = url_path
+            self.save()
+            logger.info(f"Successfully downloaded image for feed: {self.title}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to download image for feed {self.title}: {str(e)}")
+            return False
+
     def populate_episodes(self):
         try:
             if not (self.mirror and self.subscription):
@@ -112,6 +136,13 @@ class Feed(models.Model):
         except Exception as e:
             logger.error(f"Error populating episodes for feed {self.title}: {str(e)}")
 
+    @property
+    def recent_episode(self):
+        try:
+            return self.episodes.latest("pub_date")
+        except Episode.DoesNotExist:
+            return None
+
 
 class Episode(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -141,9 +172,7 @@ class Episode(models.Model):
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
-            url_path = (
-                settings.MEDIA_URL.rstrip("/") + "/" + file_path.replace("\\", "/")
-            )
+            url_path = settings.MEDIA_URL.rstrip("/") + "/" + file_path.replace("\\", "/")
             self.url = url_path
             self.save()
             logger.info(f"Successfully downloaded episode: {self.title}")
