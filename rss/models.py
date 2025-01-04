@@ -1,185 +1,72 @@
-from django.db import models
-import feedparser
-from dateutil import parser
-import logging
-import requests
-from django.utils import timezone
-import uuid
-import os
+from tools.media import download_media_requests
+from tools.rss import parse_rss_entries, parse_rss_feed_info
 from django.conf import settings
+from subscriptions.models import Subscription, Episode
+import logging
 
 logger = logging.getLogger(__name__)
 
 
-class Subscription(models.Model):
-    link = models.URLField()
-    title = models.CharField(max_length=500, default="")
-    description = models.TextField(default="")
-    pub_date = models.DateTimeField(auto_now_add=True)
-    image = models.URLField(null=True, blank=True)
-
+class RSSSubscription(Subscription):
     def save(self, *args, **kwargs):
-        if not self.title or not self.description:
-            feed = feedparser.parse(self.link)
-            self.title = feed.feed.title if not self.title else self.title
-            self.description = feed.feed.description if not self.description else self.description
-            self.image = (
-                feed.feed.image.href
-                if hasattr(feed.feed, "image") and hasattr(feed.feed.image, "href")
-                else self.image
-            )
-        if self.pk is None:
-            logger.info(f"Creating new RSSFeed: Title: {self.title}")
-        super().save(*args, **kwargs)
-        if self.pk and not hasattr(self, "mirror"):
-            self.download()
+        self.refresh()
+        super(RSSSubscription, self).save(*args, **kwargs)
+        self.populate_recent_episodes()
 
-    def download(self):
-        try:
-            response = requests.get(self.link)
-            response.raise_for_status()
-            mirror, created = Feed.objects.get_or_create(
-                subscription=self,
-                defaults={
-                    "mirror": response.text,
-                    "title": self.title,
-                    "description": self.description,
-                    "pub_date": self.pub_date,
-                    "image": self.image,
-                },
-            )
-            if not created:
-                mirror.mirror = response.text
-                mirror.save()
-            self.last_updated = timezone.now()
-            self.save()
-            logger.info(f"Successfully updated mirror for feed: {self.title}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to update mirror for feed {self.title}: {str(e)}")
-            return False
-
-    def __str__(self):
-        return self.title
-
-
-class Feed(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    title = models.CharField(max_length=500, default="")
-    description = models.TextField(default="")
-    pub_date = models.DateTimeField(auto_now_add=True)
-    image = models.URLField(null=True, blank=True)
-    subscription = models.OneToOneField(
-        Subscription, on_delete=models.CASCADE, related_name="mirror", null=True
-    )
-    mirror = models.TextField(null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    def refresh(self):
+        self.title, self.description, self.image_link = parse_rss_feed_info(self.link)
+        self.download_image()
+        self.download_rss()
 
     def download_image(self):
-        if not self.image:
-            logger.warning(f"No image URL for feed: {self.title}")
+        if not self.image_link:
+            logger.warning(f"No external image link for feed: {self.title}")
+            return (False, "")
+        success, self.image_url = download_media_requests(
+            self.image_link, str(self.uuid), "images", default_file_ext=".jpg"
+        )
+        self.image_url = self.image_url.replace(settings.SITE_URL.rstrip("/"), "")
+        return (success, self.image_url)
+
+    def download_rss(self):
+        if not self.link:
+            logger.warning(f"No external rss link for feed: {self.title}")
+            return (False, "")
+        success, self.rss_url = download_media_requests(
+            self.link, str(self.uuid), media_path="rss", default_file_ext=""
+        )
+        self.rss_url = self.rss_url.replace(settings.SITE_URL.rstrip("/"), "")
+        return (success, self.rss_url)
+
+    def populate_recent_episodes(self):
+        if not self.rss_url:
+            logger.warn(f"no rss mirror found for subscription {self.title}")
             return False
+        parse_success, entries = parse_rss_entries(
+            "http://" + settings.SITE_URL.rstrip("/") + self.rss_url, "media_link", 30
+        )
+        insert_success = True
         try:
-            base_url = self.image.split("?")[0]
-            file_extension = os.path.splitext(base_url)[-1] or ".jpg"
-            filename = f"{uuid.uuid4()}{file_extension}"
-            response = requests.get(self.image, stream=True)
-            response.raise_for_status()
-            os.makedirs(os.path.join(settings.MEDIA_ROOT, "images"), exist_ok=True)
-            file_path = os.path.join("images", filename)
-            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            with open(full_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
-            url_path = settings.MEDIA_URL.rstrip("/") + "/" + file_path.replace("\\", "/")
-            self.image = url_path
-            self.save()
-            logger.info(f"Successfully downloaded image for feed: {self.title}")
-            return True
+            for entry in entries:
+                episode = Episode.objects.create(subscription=self, **entry)
+                episode.save()
         except Exception as e:
-            logger.error(f"Failed to download image for feed {self.title}: {str(e)}")
-            return False
+            logger.warn(f"failed to insert new entries into Episode Table: {e}")
+            insert_success = False
+        return parse_success and insert_success
 
-    def populate_episodes(self):
-        try:
-            if not (self.mirror and self.subscription):
-                logger.warning(
-                    f"No external feed found for feed: {self.title}. Skipping Episode Population."
-                )
-            if not (self.mirror):
-                logger.warning(
-                    f"No content found for feed: {self.title}. Attempting Download of external content."
-                )
-                self.subscription.download()
-            feed = feedparser.parse(self.mirror)
-            for entry in feed.entries:
-                pub_date = parser.parse(entry.published)
-                episode, created = Episode.objects.get_or_create(
-                    feed=self,
-                    title=entry.title,
-                    pub_date=pub_date,
-                    defaults={
-                        "description": entry.description,
-                        "media": entry.enclosures[0].url if entry.enclosures else None,
-                    },
-                )
-                if created:
-                    logger.info(
-                        f"Created episode: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.media}"
-                    )
-                else:
-                    logger.info(
-                        f"Episode already exists: Title: {episode.title}, Published: {episode.pub_date}, Podcast URL: {episode.media}"
-                    )
-        except Exception as e:
-            logger.error(f"Error populating episodes for feed {self.title}: {str(e)}")
+    # def download_episode_audio(episode: Episode):
+    #     if not episode.media_link:
+    #         logger.warning(f"No media URL for episode: {episode.title}")
+    #         return False
+    #     success, episode.audio_url = download_media_requests(
+    #         episode.media_link, str(episode.uuid), media_path="episodes", default_file_ext=".mp3"
+    #     )
+    #     episode.save()
+    #     return success, episode.audio_url
 
-    @property
-    def recent_episode(self):
-        try:
-            return self.episodes.latest("pub_date")
-        except Episode.DoesNotExist:
-            return None
-
-
-class Episode(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    feed = models.ForeignKey(Feed, related_name="episodes", on_delete=models.CASCADE)
-    title = models.CharField(max_length=200)
-    description = models.TextField()
-    pub_date = models.DateTimeField()
-    media = models.URLField(max_length=200, blank=True, null=True)
-    played = models.BooleanField(default=False)
-    current_playback_time = models.DurationField(blank=True, null=True)
-    url = models.URLField(max_length=500, null=True, blank=True)
-
-    def download(self):
-        if not self.media:
-            logger.warning(f"No media URL for episode: {self.title}")
-            return False
-        try:
-            base_url = self.media.split("?")[0]
-            file_extension = os.path.splitext(base_url)[-1] or ".mp3"
-            filename = f"{self.uuid}{file_extension}"
-            response = requests.get(self.media, stream=True)
-            response.raise_for_status()
-            os.makedirs(os.path.join(settings.MEDIA_ROOT, "episodes"), exist_ok=True)
-            file_path = os.path.join("episodes", filename)
-            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
-            with open(full_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
-            url_path = settings.MEDIA_URL.rstrip("/") + "/" + file_path.replace("\\", "/")
-            self.url = url_path
-            self.save()
-            logger.info(f"Successfully downloaded episode: {self.title}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to download episode {self.title}: {str(e)}")
-            return False
-
-    def __str__(self):
-        return self.title
+    # def download_recent_episode_audio(self):
+    #     success, episodes = self.populate_episodes_from_rss_mirror()
+    #     if not success:
+    #         return (False, [])
+    # return (True, [self.download_media_request(episode) for episode in episodes])

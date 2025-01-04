@@ -29,4 +29,5 @@ exclude = [
     "**/migrations/*.py",
     ".venv",
     ".git",
+    ".backburner"
 ]

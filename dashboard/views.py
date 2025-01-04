@@ -1,11 +1,12 @@
 from django.shortcuts import render
-from rss.models import Feed, Episode
-from datetime import datetime, timedelta
+from subscriptions.models import Subscription, Episode
+# from datetime import datetime, timedelta
 
 
 def dashboard(request):
     context = {
-        "feeds": Feed.objects.all(),
-        "episodes": Episode.objects.filter(pub_date__gte=datetime.now() - timedelta(days=30)),
+        "subscriptions": Subscription.objects.all(),
+        "episodes": Episode.objects.all(),
+        # "episodes": Episode.objects.filter(datetime.now() - timedelta(days=30)),
     }
     return render(request, "dashboard.html", context=context)
