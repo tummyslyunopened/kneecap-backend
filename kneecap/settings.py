@@ -10,6 +10,7 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.staticfiles",
+    "solo",
     "rest_framework",
     "tools",
     "subscriptions",
@@ -71,7 +72,12 @@ USE_TZ = True
 
 SITE_URL = "127.0.0.1:8000"
 STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+# STATIC_ROOT = BASE_DIR / "static"
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+YOUTUBE_API_KEY = "AIzaSyAoF0wQ8zq_MEO0U9ypg6Jxuo5efyTqREU"

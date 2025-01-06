@@ -1,7 +1,8 @@
+from django.conf import settings
+from django.db import models
+from subscriptions.models import Queue, Subscription, Episode
 from tools.media import download_media_requests
 from tools.rss import parse_rss_entries, parse_rss_feed_info
-from django.conf import settings
-from subscriptions.models import Subscription, Episode
 import logging
 
 logger = logging.getLogger(__name__)
@@ -11,7 +12,7 @@ class RSSSubscription(Subscription):
     def save(self, *args, **kwargs):
         self.refresh()
         super(RSSSubscription, self).save(*args, **kwargs)
-        self.populate_recent_episodes()
+        RSSSubscriptionRefreshQueue.objects.create(subscription=self)
 
     def refresh(self):
         self.title, self.description, self.image_link = parse_rss_feed_info(self.link)
@@ -43,7 +44,7 @@ class RSSSubscription(Subscription):
             logger.warn(f"no rss mirror found for subscription {self.title}")
             return False
         parse_success, entries = parse_rss_entries(
-            "http://" + settings.SITE_URL.rstrip("/") + self.rss_url, "media_link", 30
+            "http://" + settings.SITE_URL.rstrip("/") + self.rss_url, "media_link", 7
         )
         insert_success = True
         try:
@@ -55,18 +56,52 @@ class RSSSubscription(Subscription):
             insert_success = False
         return parse_success and insert_success
 
-    # def download_episode_audio(episode: Episode):
-    #     if not episode.media_link:
-    #         logger.warning(f"No media URL for episode: {episode.title}")
-    #         return False
-    #     success, episode.audio_url = download_media_requests(
-    #         episode.media_link, str(episode.uuid), media_path="episodes", default_file_ext=".mp3"
-    #     )
-    #     episode.save()
-    #     return success, episode.audio_url
+    def download_episode_audio(episode: Episode):
+        if not episode.media_link:
+            logger.warning(f"No media URL for episode: {episode.title}")
+            return False
+        success, episode.audio_url = download_media_requests(
+            episode.media_link, str(episode.uuid), media_path="episodes", default_file_ext=".mp3"
+        )
+        episode.audio_url = episode.audio_url.replace(settings.SITE_URL.rstrip("/"), "")
+        episode.save()
+        return success, episode.audio_url
 
-    # def download_recent_episode_audio(self):
-    #     success, episodes = self.populate_episodes_from_rss_mirror()
-    #     if not success:
-    #         return (False, [])
-    # return (True, [self.download_media_request(episode) for episode in episodes])
+    def populate_download_queue(self):
+        for episode in self.recent_episodes:
+            if not episode.audio_url:
+                RSSEpisodeDownloadQueue.objects.create(episode=episode)
+
+
+class RSSSubscriptionRefreshQueue(Queue):
+    subscription = models.ForeignKey(
+        RSSSubscription, related_name="refreshes", null=True, blank=True, on_delete=models.SET_NULL
+    )
+
+    def save(self, *args, **kwargs):
+        self.description = f"Refresh RSSSubscription {self.subscription.uuid}"
+        super(RSSSubscriptionRefreshQueue, self).save(*args, **kwargs)
+
+    def refresh(self):
+        self.subscription.download_rss()
+        self.subscription.populate_recent_episodes()
+        self.completed = True
+        self.save()
+
+
+class RSSEpisodeDownloadQueue(Queue):
+    episode = models.ForeignKey(
+        Episode, related_name="download_queue", null=True, blank=True, on_delete=models.SET_NULL
+    )
+
+    def save(self, *args, **kwargs):
+        self.description = f"download episode: {self.episode}"
+        super(RSSEpisodeDownloadQueue, self).save(*args, **kwargs)
+
+    def download(self):
+        self.download_audio()
+        self.completed = True
+        self.save()
+
+    def download_audio(self):
+        RSSSubscription.download_episode_audio(self.episode)

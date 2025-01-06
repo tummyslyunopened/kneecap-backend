@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Subscriptions{% endblock %}
+<div class="jobs">
+    <h1>Jobs</h1>
+    {% for job in jobs %}
+    <div class="job-preview">
+        <p>
+            Description: {{ job.description }}
+            <br />
+            Created: {{ job.created_at }}
+            <br />
+            Updated: {{job.updated_at }}
+            <br />
+            Completed: {{job.completed }}
+        </p>
+    </div>
+    {% endfor %}
+</div>

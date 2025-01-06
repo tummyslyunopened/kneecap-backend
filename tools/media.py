@@ -46,12 +46,10 @@ def download_video_youtube_dl(
     link, uuid, media_path="unsorted", default_file_ext="", quality_code=""
 ):
     try:
-        full_path, url_path = get_media_paths(
-            link, uuid, media_path, default_file_ext, quality_code
-        )
-        command = f"youtube-dl --dateafter now-7days --playlist-end 2 --download-archive './downloaded.txt' -o './%(id)s.%(ext)s' -- '{link}'"
+        full_path, url_path = get_media_paths(link, uuid, media_path, default_file_ext)
+        command = f"youtube-dl '{link}'"
         subprocess.run(command, shell=True, check=True)
         return (True, url_path)
     except subprocess.CalledProcessError as e:
-        logger.warn(f"Failed to download media at {link}: {e}")
+        logger.warn(f"Failed to download youtube video at {link}: {e}")
         return (False, "")

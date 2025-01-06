@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def parse_rss_entries(link, entry_url_field_name="url", days_cutoff=30):
+def parse_rss_entries(link, entry_url_field_name="url", days_cutoff=7):
     try:
         feed_content = requests.get(url=link).content
         feed = feedparser.parse(feed_content)

@@ -1,6 +1,8 @@
 from django.db import models
-import logging
+from datetime import timedelta, datetime
 import uuid
+import logging
+from solo.models import SingletonModel
 
 logger = logging.getLogger(__name__)
 
@@ -8,23 +10,32 @@ logger = logging.getLogger(__name__)
 class Subscription(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     link = models.URLField(unique=True)
-    title = models.CharField(max_length=500, default="", blank=True, null=True)
-    description = models.TextField(default="", blank=True, null=True)
-    image_link = models.URLField(null=True, blank=True)
-    image_url = models.URLField(null=True, blank=True)
+    title = models.CharField(max_length=500, default="", blank=True)
+    description = models.TextField(default="", blank=True)
+    image_link = models.URLField(blank=True)
+    image_url = models.URLField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    rss_url = models.URLField(null=True, blank=True)
-
-    def refresh(self):
-        pass
+    rss_url = models.URLField(blank=True)
+    recent_episode_pub_date = models.DateTimeField(blank=True, null=True)
 
     @property
     def recent_episode(self):
         try:
-            return self.episodes.latest("pub_date")
+            episode = self.episodes.latest("pub_date")
+            self.recent_episode_pub_date = episode.pub_date
+            return episode
+
         except Episode.DoesNotExist:
             return None
+
+    @property
+    def recent_episode_by_day_cuttoff(self):
+        cut_off = datetime.now() - timedelta(days=7)
+        return self.episodes.objects.filter(pub_date__gte=cut_off)
+
+    class Meta:
+        ordering = ["-recent_episode_pub_date"]
 
 
 class Episode(models.Model):
@@ -35,31 +46,60 @@ class Episode(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     pub_date = models.DateTimeField()
-    media_link = models.URLField(max_length=200, blank=True, null=True)
-    audio_url = models.URLField(max_length=500, null=True, blank=True)
+    media_link = models.URLField(max_length=200, blank=True)
+    audio_url = models.URLField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    hidden = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-pub_date"]
+        unique_together = ("title", "description", "pub_date")
 
     @property
     def image_url(self):
         return self.subscription.image_url
 
-    def refresh(self):
-        pass
 
-    class Meta:
-        unique_together = ("title", "description", "pub_date")
-
-
-class SubscriptionRefreshQueue(models.Model):
-    subscription = models.ForeignKey(
-        Subscription, related_name="refreshes", on_delete=models.SET_NULL, null=True, blank=True
-    )
+class Queue(models.Model):
+    description = models.TextField()
+    completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    complete = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def work(self):
-        self.subscription.refresh()
-        self.complete = True
-        self.save()
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["description"],
+                condition=models.Q(completed=False),
+                name="unique_incomplete_job",
+            )
+        ]
+
+
+class Feed(SingletonModel):
+    chronological = models.BooleanField(default=False)
+    view_hidden = models.BooleanField(default=False)
+    cutoff_days = models.IntegerField(default=7)
+
+    @property
+    def order_string_pref(self):
+        if self.chronological:
+            return "-"
+        else:
+            return ""
+
+    @property
+    def episodes(self):
+        return Episode.objects.filter(
+            pub_date__gte=datetime.now() - timedelta(days=self.cutoff_days),
+            hidden=(False or self.view_hidden),
+        ).order_by(f"{self.order_string_pref}pub_date")
+
+
+class Event(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class EpisodeWatchEvent(Event):
+    episode = models.ForeignKey(Episode, related_name="watch_events", on_delete=models.CASCADE)

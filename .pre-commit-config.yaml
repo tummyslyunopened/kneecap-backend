@@ -1,5 +1,5 @@
-   repos:
-     - repo: https://github.com/charliermarsh/ruff-pre-commit
-       rev: v0.8.4  # Use the latest version
-       hooks:
-         - id: ruff
+repos:
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.8.4  # Use the latest version
+    hooks:
+      - id: ruff
