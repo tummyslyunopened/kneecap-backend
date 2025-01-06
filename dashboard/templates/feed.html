@@ -34,6 +34,10 @@
         <a href="{{episode.audio_url}}">Audio</a>
         {% endif %}
       </p>
+        <!-- <video controls>
+          <source src="{{ episode.media_link}}" type="audio/m4">
+          Your browser does not support the audio element.
+        </video > -->
       <form action="{% url 'add_to_rss_episode_download_queue' episode.pk %}" method="POST">
         {% csrf_token %}
         <button type="submit">Download</button>
