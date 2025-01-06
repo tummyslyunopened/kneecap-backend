@@ -1,7 +1,6 @@
 from django.urls import path, include
 
 # from rss import urls as rss_urls
-
 # from api import urls as api_urls
 from opml import urls as opml_urls
 from django.conf import settings
@@ -13,6 +12,7 @@ from dashboard.views import (
     hide_all_episodes,
     hide_episode,
     toggle_feed_chronological,
+    refresh_subscriptions,
 )
 
 urlpatterns = [
@@ -41,6 +41,11 @@ urlpatterns = [
         "hide-all-episodes",
         hide_all_episodes,
         name="hide_all_episodes",
+    ),
+    path(
+        "refresh-subscriptions",
+        refresh_subscriptions,
+        name="refresh_subscriptions",
     ),
     # path("rss/", include(rss_urls)),
     # path("api/", include(api_urls)),

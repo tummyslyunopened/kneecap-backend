@@ -72,6 +72,13 @@ class RSSSubscription(Subscription):
             if not episode.audio_url:
                 RSSEpisodeDownloadQueue.objects.create(episode=episode)
 
+    @classmethod
+    def refresh_all(cls):
+        for subscription in cls.objects.all():
+            RSSSubscriptionRefreshQueue.objects.get_or_create(
+                subscription=subscription, completed=False
+            )
+
 
 class RSSSubscriptionRefreshQueue(Queue):
     subscription = models.ForeignKey(

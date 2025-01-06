@@ -12,6 +12,12 @@
     {% csrf_token %}
     <button type="submit">Toggle Chron</button>
   </form>
+
+  <form action="{% url 'refresh_subscriptions' %}" method="POST">
+    {% csrf_token %}
+    <button type="submit">Refresh</button>
+  </form>
+
   {% for episode in episodes %}
   <div class="episode-preview" id="{{episode.pk}}">
     <div class="image-container">
