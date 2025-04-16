@@ -1,54 +1,48 @@
 {% extends "base.html" %}
 {% block title %}Feed{% endblock %}
 {% block content %}
-<div class="episodes">
 
-  <form action="{% url 'hide_all_episodes' %}" method="POST">
-    {% csrf_token %}
-    <button type="submit">Hide All</button>
-  </form>
-
-  <form action="{% url 'toggle_feed_chronological' %}" method="POST">
-    {% csrf_token %}
-    <button type="submit">Toggle Chron</button>
-  </form>
-
-  <form action="{% url 'refresh_subscriptions' %}" method="POST">
-    {% csrf_token %}
-    <button type="submit">Refresh</button>
-  </form>
-
+<div class="episodes mt-2" style="max-width: 500px; position: relative;">
   {% for episode in episodes %}
-  <div class="episode-preview" id="{{episode.pk}}">
+  <div class="episode-preview mb-1" id="{{episode.pk}}" style="max-height: 150px; border-bottom: 1px solid #ccc;">
     <div class="image-container">
-      <img src="{{ episode.image_url }}" alt="" width="75" />
+      <img src="{{ episode.image_url }}" alt="" width="125" />
     </div>
-
-    <div class="text-content">
+    <div class="text-content" style="white-space: nowrap;">
       <p>
         {{ episode.title }}
         <br />Published: {{ episode.pub_date }}
         <br />
-        <a href="{{episode.media_link}}">Source</a>
+        <a href="{{episode.media_link}}" class="btn btn-link">Source</a>
         {% if episode.audio_url %}
-        <a href="{{episode.audio_url}}">Audio</a>
+        <a href="{{episode.audio_url}}" class="btn btn-link">Audio</a>
         {% endif %}
+      <form action="{% url 'add_to_rss_episode_download_queue' episode.pk %}" method="POST" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Download</button>
+      </form>
+      <form action="{% url 'hide_episode' episode.pk %}" method="POST" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger" onclick="hide('{{episode.pk}}')">Hide</button>
+      </form>
       </p>
-        <!-- <video controls>
-          <source src="{{ episode.media_link}}" type="audio/m4">
-          Your browser does not support the audio element.
-        </video > -->
-      <form action="{% url 'add_to_rss_episode_download_queue' episode.pk %}" method="POST">
-        {% csrf_token %}
-        <button type="submit">Download</button>
-      </form>
-      <form action="{% url 'hide_episode' episode.pk %}" method="POST">
-        {% csrf_token %}
-        <button type="submit" onclick="hide('{{episode.pk}}')">Hide</button>
-      </form>
     </div>
   </div>
   {% endfor %}
-</div>
+  <div class="sticky-header"
+    style="position: sticky; bottom: 0; background: #fff; padding: 10px; display: flex; justify-content: space-between;">
+    <form action="{% url 'hide_all_episodes' %}" method="POST" style="display: inline-block;">
+      {% csrf_token %}
+      <button type="submit">Hide All</button>
+    </form>
+    <form action="{% url 'toggle_feed_chronological' %}" method="POST" style="display: inline-block;">
+      {% csrf_token %}
+      <button type="submit">Toggle Chron</button>
+    </form>
+    <form action="{% url 'refresh_subscriptions' %}" method="POST" style="display: inline-block;">
+      {% csrf_token %}
+      <button type="submit">Refresh</button>
+    </form>
+  </div>
 </div>
 {% endblock %}

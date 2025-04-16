@@ -7,6 +7,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from dashboard.views import (
     feed,
+    subscriptions,
     delete_rss_subscription,
     add_to_rss_episode_download_queue,
     hide_all_episodes,
@@ -17,6 +18,7 @@ from dashboard.views import (
 
 urlpatterns = [
     path("", feed, name="feed"),
+    path("subscriptions", subscriptions, name="subscriptions"),
     path(
         "delete-rss-subscription/<int:pk>/",
         delete_rss_subscription,

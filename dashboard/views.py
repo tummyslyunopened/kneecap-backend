@@ -1,6 +1,6 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
-from subscriptions.models import Episode, Feed
+from subscriptions.models import Episode, Feed, Subscription
 from rss.forms import RSSSubscriptionForm
 from rss.models import RSSSubscription, RSSEpisodeDownloadQueue
 import logging
@@ -57,20 +57,24 @@ def refresh_subscriptions(request):
     return HttpResponse("<script>history.back();</script>")
 
 
-def feed(request):
+def subscriptions(request):
     if request.method == "POST":
         add_subscription_form = RSSSubscriptionForm(request.POST)
         if add_subscription_form.is_valid():
             rss_subscription = add_subscription_form.save(commit=False)
             rss_subscription.save()  # This will also run the `save` method in the `RSSSubscription` model
-        return HttpResponseRedirect("/")
+        return HttpResponseRedirect("/subscriptions")
     else:
         add_subscription_form = RSSSubscriptionForm()
     context = {
-        # "add_subscription_form": add_subscription_form,
-        # "subscriptions": Subscription.objects.all(),
-        "episodes": Feed.get_solo().episodes
+        "add_subscription_form": add_subscription_form,
+        "subscriptions": Subscription.objects.all(),
         # "jobs": Queue.objects.all(),
         # "episodes": Episode.objects.filter(datetime.now() - timedelta(days=30)),
     }
+    return render(request, "subscriptions.html", context=context)
+
+
+def feed(request):
+    context = {"episodes": Feed.get_solo().episodes}
     return render(request, "feed.html", context=context)
