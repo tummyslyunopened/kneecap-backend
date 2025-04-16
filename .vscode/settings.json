@@ -23,4 +23,5 @@
     "titleBar.inactiveForeground": "#e7e7e799"
   },
   "peacock.color": "#c543d3",
+  "djlint.showInstallError": false,
 }
