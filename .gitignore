@@ -15,7 +15,6 @@ __pycache__/
 media/
 staticfiles/
 .env
-*.env
 
 # IDEs and editors
 .idea/
