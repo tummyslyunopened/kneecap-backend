@@ -1,11 +1,16 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+DEBUG = os.getenv("DEBUG") == "True"
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = "django-insecure-p5j4dxv^59j9_bak1(fah5j&fwt9qj@4p2kmftkr*-cbs#)*jk"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
-DEBUG = True
-ALLOWED_HOSTS = []
+print(os.getenv("ALLOWED_HOST"))
+ALLOWED_HOSTS = [os.getenv("ALLOWED_HOST")]
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -16,7 +21,6 @@ INSTALLED_APPS = [
     "subscriptions",
     "rss",
     "dashboard",
-    # "api",
     "opml",
 ]
 MIDDLEWARE = [
@@ -51,33 +55,17 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
+
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-SITE_URL = "127.0.0.1:8000"
+SITE_URL = os.getenv("SITE_URL")
 STATIC_URL = "/static/"
-# STATIC_ROOT = BASE_DIR / "static"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
-YOUTUBE_API_KEY = "AIzaSyAoF0wQ8zq_MEO0U9ypg6Jxuo5efyTqREU"
