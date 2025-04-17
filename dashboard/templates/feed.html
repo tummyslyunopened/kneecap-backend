@@ -21,27 +21,31 @@
       <img src="{{ episode.image_url }}" alt="" width="125" />
     </div>
     <div class="text-content" style="white-space: nowrap;">
-      <p>
+      <div id="episode-title-{{episode.pk}}">
         {{ episode.title }}
-        <br />Published: {{ episode.pub_date }}
-        <br />
-        <a href="{{episode.media_link}}" class="btn btn-link">Source</a>
-        {% if episode.audio_url %}
-        <a href="{{episode.audio_url}}" class="btn btn-link">Audio</a>
-        {% endif %}
+      </div>
+      Published: {{ episode.pub_date }}
+      <a href="{{episode.media_link}}" class="btn btn-link">Source</a>
+      <br />
+      {% if episode.audio_url %}
+      <audio controls>
+        <source src="{{episode.audio_url}}" type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
+      {% else %}
       <form action="{% url 'add_to_rss_episode_download_queue' episode.pk %}" method="POST" class="d-inline">
         {% csrf_token %}
         <button type="submit" class="btn btn-primary">Download</button>
       </form>
+      {% endif %}
       <form action="{% url 'hide_episode' episode.pk %}" method="POST" class="d-inline">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger" onclick="hide('{{episode.pk}}')">Hide</button>
       </form>
-      </p>
     </div>
   </div>
   {% endfor %}
-  <div class="sticky-header"
+  <div class="sticky-footer"
     style="position: sticky; bottom: 0; background: #fff; padding: 10px; display: flex; justify-content: space-between;">
     <form action="{% url 'hide_all_episodes' %}" method="POST" style="display: inline-block;">
       {% csrf_token %}
