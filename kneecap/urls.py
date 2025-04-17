@@ -12,6 +12,7 @@ from dashboard.views import (
     add_to_rss_episode_download_queue,
     hide_all_episodes,
     hide_episode,
+    play_episode,
     toggle_feed_chronological,
     refresh_subscriptions,
 )
@@ -33,6 +34,11 @@ urlpatterns = [
         "hide-episode/<int:pk>/",
         hide_episode,
         name="hide_episode",
+    ),
+    path(
+        "play-episode/<int:pk>/",
+        play_episode,
+        name="play_episode",
     ),
     path(
         "toggle-feed-chronological",
