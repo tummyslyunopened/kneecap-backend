@@ -1,23 +1,19 @@
 const episodeTitleSelector = '[id^="episode-title-"]';
-const maxEpisodeTitleWidth = 375; //px
-const episodeTitleMarqueeSpeed = 95; //px /s
-const marqueeFocusTimeDelay = 1; // s
+const maxEpisodeTitleWidth = 375; 
+const episodeTitleMarqueeSpeed = 95; 
+const marqueeFocusTimeDelay = 1; 
 
-let lastTopEpisode = null; // Keep a memory of the last topEpisode element
+let lastTopEpisode = null; 
 
-function hide(id) {
-  let el = document.getElementById(id);
-  el.style.display = "none";
-}
 
 function topElement(selector) {
-  const elements = document.querySelectorAll(selector); // Select elements with IDs starting with 'episode-title-'
+  const elements = document.querySelectorAll(selector); 
   let topEpisode = null;
   let topEpisodeDistance = Infinity;
 
   elements.forEach(element => {
     const rect = element.getBoundingClientRect();
-    const distance = rect.top; // Distance from the top of the viewport
+    const distance = rect.top; 
     if (distance >= 0 && distance < topEpisodeDistance) {
       topEpisodeDistance = distance;
       topEpisode = element;
@@ -45,24 +41,24 @@ function marqueeTitle(){
  console.log(episodeTitleSelector)  
  topEpisode = topElement(episodeTitleSelector)
   if (topEpisode) {
-    // If the topEpisode element is different from the last closest, reset the last closest
+    
     if (lastTopEpisode && lastTopEpisode !== topEpisode) {
-      lastTopEpisode.style.color = ''; // Reset text color
-      lastTopEpisode.style.whiteSpace = ''; // Allow text to wrap again
-      lastTopEpisode.style.overflow = ''; // Show overflow again
-      lastTopEpisode.style.position = ''; // Reset position
-      lastTopEpisode.style.animation = ''; // Stop animation
+      lastTopEpisode.style.color = ''; 
+      lastTopEpisode.style.whiteSpace = ''; 
+      lastTopEpisode.style.overflow = ''; 
+      lastTopEpisode.style.position = ''; 
+      lastTopEpisode.style.animation = ''; 
     }
     const titleWidth = topEpisode.offsetWidth;
     if (titleWidth > maxEpisodeTitleWidth) {
       let overflowWidth = titleWidth - maxEpisodeTitleWidth
       marqueeParams = getMarqueeKeyframeParams(overflowWidth, episodeTitleMarqueeSpeed, marqueeFocusTimeDelay)
 
-      topEpisode.style.color = 'red'; // Change text color to red if width is greater than 500px
-      topEpisode.style.whiteSpace = 'nowrap'; // Prevent text from wrapping
-      topEpisode.style.overflow = 'hidden'; // Hide overflow
-      topEpisode.style.position = 'relative'; // Set position for animation
-      // Create a dynamic keyframe animation
+      topEpisode.style.color = 'red'; 
+      topEpisode.style.whiteSpace = 'nowrap'; 
+      topEpisode.style.overflow = 'hidden'; 
+      topEpisode.style.position = 'relative'; 
+      
       const keyframes = `
         @keyframes scroll-left {
           0% {
@@ -79,7 +75,7 @@ function marqueeTitle(){
           }
         }
       `;
-      // Append the keyframes to a <style> element
+      
       const styleSheet = document.createElement("style");
       styleSheet.type = "text/css";
       styleSheet.innerText = keyframes;
@@ -89,6 +85,60 @@ function marqueeTitle(){
     }
   }
 }
+ 
 
-// Add scroll event listener to run findtopEpisodeEpisode on scroll
+ function episodeMethodPost(url, episodeId) {
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: {
+                'episode_id': episodeId,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            }
+        });
+    }
+
+function simplePost(url){
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: {
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            }
+        });
+}
+
+function hideEpisode(url, episodeId) {
+  episodeMethodPost(url, episodeId)
+  let el = document.getElementById(episodeId);
+  el.style.display = "none";
+}
+
+function downloadEpisode(url, episodeId) {
+  episodeMethodPost(url, episodeId);
+  let el = document.getElementById('episode-download-btn-' + episodeId);
+  el.disabled = true;
+  el.innerHTML = "Queued"
+}
+
+function playEpisode(url, episodeId) {
+  episodeMethodPost(url, episodeId);
+} 
+
+function toggleChron(url) {
+  simplePost(url);
+  el = document.getElementById('episode-previews');
+  const children = Array.from(el.children);
+  children.reverse();
+  el.innerHTML = ''; // Clear the container
+  children.forEach(child => el.appendChild(child)); // Reappend children in reversed order
+}
+function logCurrentPlaytime() {
+  const audioElement = document.getElementById('player-audio');
+  console.log(audioElement.currentTime);
+}
+
+setInterval(logCurrentPlaytime, 3000);
+
+
 window.addEventListener('scroll', marqueeTitle);
