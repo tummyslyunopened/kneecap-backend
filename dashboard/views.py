@@ -3,6 +3,7 @@ from django.shortcuts import render
 from subscriptions.models import Episode, Feed, Subscription
 from rss.forms import RSSSubscriptionForm
 from rss.models import RSSSubscription, RSSEpisodeDownloadQueue
+from player.models import Player
 import logging
 from django.shortcuts import get_object_or_404
 
@@ -33,6 +34,17 @@ def hide_episode(request, pk):
     if request.method == "POST":
         episode.hidden = True
         episode.save()
+    return HttpResponse("<script>history.back();</script>")
+
+
+def play_episode(request, pk):
+    print("playing episode")
+    episode = get_object_or_404(Episode, pk=pk)
+    print(episode.title)
+    if request.method == "POST":
+        player = Player.get_solo()
+        player.episode = episode
+        player.save()
     return HttpResponse("<script>history.back();</script>")
 
 
@@ -76,5 +88,5 @@ def subscriptions(request):
 
 
 def feed(request):
-    context = {"episodes": Feed.get_solo().episodes}
+    context = {"episodes": Feed.get_solo().episodes, "player_episode": Player.get_solo().episode}
     return render(request, "feed.html", context=context)
