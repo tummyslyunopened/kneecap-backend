@@ -64,15 +64,13 @@ def subscriptions(request):
         add_subscription_form = RSSSubscriptionForm(request.POST)
         if add_subscription_form.is_valid():
             rss_subscription = add_subscription_form.save(commit=False)
-            rss_subscription.save()  # This will also run the `save` method in the `RSSSubscription` model
+            rss_subscription.save()
         return HttpResponseRedirect("/subscriptions")
     else:
         add_subscription_form = RSSSubscriptionForm()
     context = {
         "add_subscription_form": add_subscription_form,
         "subscriptions": Subscription.objects.all(),
-        # "jobs": Queue.objects.all(),
-        # "episodes": Episode.objects.filter(datetime.now() - timedelta(days=30)),
     }
     return render(request, "subscriptions.html", context=context)
 
