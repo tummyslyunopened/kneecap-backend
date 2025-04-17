@@ -2,7 +2,19 @@
 {% block title %}Feed{% endblock %}
 {% block content %}
 
-<div class="episodes mt-2" style="max-width: 500px; position: relative;">
+<div class="episodes mt-2 mx-2" style="max-width: 500px; position: relative;">
+  <div class="sticky-footer"
+    style="position: sticky; top: 0; background: #fff; padding: 10px; display: flex; justify-content: space-between;">
+    <a href="/subscriptions" style="display: inline-block;">
+      Subscriptions
+    </a>
+    <a href="/settings" style="display: inline-block;">
+      Settings
+    </a>
+    <a href="/logs" style="display: inline-block;">
+      Logs
+    </a>
+  </div>
   {% for episode in episodes %}
   <div class="episode-preview mb-1" id="{{episode.pk}}" style="max-height: 150px; border-bottom: 1px solid #ccc;">
     <div class="image-container">
