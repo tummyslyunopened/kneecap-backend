@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "rss",
     "dashboard",
     "opml",
+    "player",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
