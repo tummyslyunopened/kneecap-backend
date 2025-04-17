@@ -8,4 +8,5 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         queue = RSSEpisodeDownloadQueue.objects.filter(completed=False)
         for item in queue:
+            print(f"downloading {item.episode.media_link}")
             item.download()

@@ -106,9 +106,10 @@ class RSSEpisodeDownloadQueue(Queue):
         super(RSSEpisodeDownloadQueue, self).save(*args, **kwargs)
 
     def download(self):
-        self.download_audio()
-        self.completed = True
+        success, x = self.download_audio()
+        if success:
+            self.completed = True
         self.save()
 
     def download_audio(self):
-        RSSSubscription.download_episode_audio(self.episode)
+        return RSSSubscription.download_episode_audio(self.episode)
