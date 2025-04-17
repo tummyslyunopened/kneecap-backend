@@ -51,6 +51,7 @@ class Episode(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     hidden = models.BooleanField(default=False)
+    queued_for_download = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-pub_date"]

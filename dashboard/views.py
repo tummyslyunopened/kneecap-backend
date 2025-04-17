@@ -21,6 +21,8 @@ def add_to_rss_episode_download_queue(request, pk):
         episode = get_object_or_404(Episode, pk=pk)
         try:
             RSSEpisodeDownloadQueue.objects.create(episode=episode)
+            episode.queued_for_download = True
+            episode.save()
         except Exception as e:
             logger.warn(f"Request to view failed to add episode{e, request, episode}")
     return HttpResponse("<script>history.back();</script>")
