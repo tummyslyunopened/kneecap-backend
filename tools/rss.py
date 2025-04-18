@@ -3,7 +3,6 @@ import feedparser
 from dateutil import parser
 from datetime import datetime, timedelta
 import logging
-# from icecream import ic
 
 logger = logging.getLogger(__name__)
 
