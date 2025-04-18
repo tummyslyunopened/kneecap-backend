@@ -1,6 +1,7 @@
 .image-container {
   margin-right: 10px;
   border-radius: 50%;
+  z-index: 9998;
 }
 
 .episode-preview {
@@ -55,6 +56,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  z-index: 9999;
 }
 
 .controls {

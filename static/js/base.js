@@ -53,7 +53,6 @@ function marqueeTitle() {
       let overflowWidth = titleWidth - maxEpisodeTitleWidth
       marqueeParams = getMarqueeKeyframeParams(overflowWidth, episodeTitleMarqueeSpeed, marqueeFocusTimeDelay)
 
-      topEpisode.style.color = 'red';
       topEpisode.style.whiteSpace = 'nowrap';
       topEpisode.style.overflow = 'hidden';
       topEpisode.style.position = 'relative';
