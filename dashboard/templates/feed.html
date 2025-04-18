@@ -4,20 +4,19 @@
 <div class="container">
 <div class="row">
 <div class="col-sm" style="max-width: 540px;">
-<div class="sticky-header sticky"
-  style="position: sticky; top: 0; padding: 10px; display: flex; justify-content: space-between; z-index: 9999;">
+<div class="sticky-header sticky">
   <button type="button" class="btn btn-secondary" onclick="hideAll('{% url "hide_all_episodes" %}')">Hide All</button>
- <button type="button" class="btn btn-secondary" onclick="toggleChron('{% url "toggle_feed_chronological" %}')">Toggle Chron</button>
+  <button type="button" class="btn btn-secondary" onclick="toggleChron('{% url "toggle_feed_chronological" %}')">Toggle Chron</button>
   <button type="button" class="btn btn-secondary" onclick="refreshFeed('{% url "refresh_subscriptions" %}')">Refresh</button>
 </div>
 
-    <div id="episode-previews" style="max-width: 540px;">
+    <div id="episode-previews" class="episode-previews">
       {% for episode in episodes %}
-      <div class="episode-preview mb-1" id="{{episode.pk}}" style=" overflow: hidden; max-height: 150px; border-bottom: 1px solid #ccc;">
-        <div class="image-container" style="border-radius: 50%;">
+      <div class="episode-preview mb-1" id="{{episode.pk}}">
+        <div class="image-container">
           <img src="{{ episode.image_url }}" alt="Episode Image" width="125" />
         </div>
-        <div class="text-content" style="white-space: nowrap;">
+        <div class="text-content">
           <div id="episode-title-{{episode.pk}}">
             {{ episode.title }}
           </div>
