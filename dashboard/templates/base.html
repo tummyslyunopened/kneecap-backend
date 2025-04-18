@@ -4,7 +4,7 @@
 <head>
     {% load static %}
     <link href="{% static '/styles/base.css' %}" rel="stylesheet" />
-    <script type="text/javascript">     window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
+    <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}"; </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{% static '/js/base.js ' %}"> </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -18,19 +18,6 @@
 </head>
 
 <body>
-    <div class="episodes mt-2 mx-2" style="max-width: 500px; position: relative;">
-        <div class="sticky-header"
-            style="position: sticky; top: 0; background: #fff; padding: 10px; display: flex; justify-content: space-between;">
-            <a href="/subscriptions" style="display: inline-block;">
-                Subscriptions
-            </a>
-            <a href="/settings" style="display: inline-block;">
-                Settings
-            </a>
-            <a href="/logs" style="display: inline-block;">
-                Logs
-            </a>
-        </div>
         {% block content %}
         {% endblock %}
 </body>
