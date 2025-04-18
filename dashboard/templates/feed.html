@@ -20,7 +20,8 @@
           <div id="episode-title-{{episode.pk}}">
             {{ episode.title }}
           </div>
-          Published: {{ episode.pub_date }}
+          📅{{ episode.pub_date|date:"mdHi" }}
+          ⏲️{{ episode.duration|default:"0" }}
           <a href="{{episode.media_link}}" class="btn btn-link">Source</a>
           <br />
 
