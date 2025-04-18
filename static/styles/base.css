@@ -6,6 +6,7 @@
   align-items: center;
   display: flex;
   flex-direction: row;
+  background-color:#e5e0f8;
 }
 
 .subscription-preview {
@@ -25,4 +26,35 @@
   }
 }
 
+.sticky {
+  background-color: #1b1340;
+}
 
+.player-container {
+  background-color: #1b1340;
+  color: white;
+}
+
+      .sticky-footer{
+        position: sticky;
+        bottom: 0;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .controls {
+        display: flex;
+      }
+      .player-button {
+        display: flex;
+        align-items: center;
+        margin: auto;
+      }
+      .player-text {
+        color: white;
+        margin: auto;
+      }
+      .player-audio {
+        display: none;
+      }
