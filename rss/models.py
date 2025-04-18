@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from django.conf import settings
 from django.db import models
 from subscriptions.models import Queue, Subscription, Episode
@@ -46,15 +47,15 @@ class RSSSubscription(Subscription):
         parse_success, entries = parse_rss_entries(
             "http://" + settings.SITE_URL.rstrip("/") + self.rss_url, "media_link", 7
         )
-        insert_success = True
-        try:
-            for entry in entries:
+        for entry in entries:
+            try:
                 episode = Episode.objects.create(subscription=self, **entry)
                 episode.save()
-        except Exception as e:
-            logger.warn(f"failed to insert new entries into Episode Table: {e}")
-            insert_success = False
-        return parse_success and insert_success
+                RSSEpisodeDownloadQueue.objects.create(episode=episode)
+            except Exception as e:
+                logger.info(f"Failed to insert episode: {e}")
+                pass 
+        return parse_success 
 
     def download_episode_audio(episode: Episode):
         if not episode.media_link:
@@ -90,11 +91,15 @@ class RSSSubscriptionRefreshQueue(Queue):
         super(RSSSubscriptionRefreshQueue, self).save(*args, **kwargs)
 
     def refresh(self):
-        self.subscription.download_rss()
+        if self.subscription.last_refresh and datetime.now().replace(tzinfo=None) - self.subscription.last_refresh.replace(tzinfo=None) < timedelta(hours=1):
+            print(f"Subscription not ready for refresh for {self.subscription.title}")
+            return False 
+        self.completed, x = self.subscription.download_rss()
         self.subscription.populate_recent_episodes()
-        self.completed = True
+        if self.completed:
+            self.subscription.last_refresh = datetime.now().replace(tzinfo=None)
         self.save()
-
+        return self.completed
 
 class RSSEpisodeDownloadQueue(Queue):
     episode = models.ForeignKey(
@@ -106,10 +111,9 @@ class RSSEpisodeDownloadQueue(Queue):
         super(RSSEpisodeDownloadQueue, self).save(*args, **kwargs)
 
     def download(self):
-        success, x = self.download_audio()
-        if success:
-            self.completed = True
+        self.completed, x = self.download_audio()
         self.save()
+        return self.completed
 
     def download_audio(self):
         return RSSSubscription.download_episode_audio(self.episode)

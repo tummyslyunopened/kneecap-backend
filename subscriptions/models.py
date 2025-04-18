@@ -18,6 +18,7 @@ class Subscription(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     rss_url = models.URLField(blank=True)
     recent_episode_pub_date = models.DateTimeField(blank=True, null=True)
+    last_refresh = models.DateTimeField(blank=True, null=True)
 
     @property
     def recent_episode(self):
@@ -52,6 +53,7 @@ class Episode(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     hidden = models.BooleanField(default=False)
     queued_for_download = models.BooleanField(default=False)
+    duration = models.IntegerField(default=0)
 
     class Meta:
         ordering = ["-pub_date"]
