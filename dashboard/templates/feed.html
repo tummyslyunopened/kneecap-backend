@@ -1,49 +1,77 @@
 {% extends "base.html" %}
 {% block title %}Feed{% endblock %}
 {% block content %}
-
-<div class="sticky-header"
-  style="position: sticky; top: 0; background: #fff; padding: 10px; display: flex; justify-content: space-between;">
- <button type="button" class="btn btn-secondary" onclick="hideAll('{% url "hide_all_episodes" %}')">Hide All</button>
+<div class="container">
+<div class="row">
+<div class="col-sm" style="max-width: 540px;">
+<div class="sticky-header sticky"
+  style="position: sticky; top: 0; padding: 10px; display: flex; justify-content: space-between; z-index: 9999;">
+  <button type="button" class="btn btn-secondary" onclick="hideAll('{% url "hide_all_episodes" %}')">Hide All</button>
  <button type="button" class="btn btn-secondary" onclick="toggleChron('{% url "toggle_feed_chronological" %}')">Toggle Chron</button>
- <button type="button" class="btn btn-secondary" onclick="refreshFeed('{% url "refresh_subscriptions" %}')">Refresh</button>
+  <button type="button" class="btn btn-secondary" onclick="refreshFeed('{% url "refresh_subscriptions" %}')">Refresh</button>
 </div>
 
-<div id="episode-previews">
-{% for episode in episodes %}
-<div class="episode-preview mb-1" id="{{episode.pk}}" style="max-height: 150px; border-bottom: 1px solid #ccc;">
-  <div class="image-container">
-    <img src="{{ episode.image_url }}" alt="" width="125" />
-  </div>
-  <div class="text-content" style="white-space: nowrap;">
-    <div id="episode-title-{{episode.pk}}">
-      {{ episode.title }}
+    <div id="episode-previews" style="max-width: 540px;">
+      {% for episode in episodes %}
+      <div class="episode-preview mb-1" id="{{episode.pk}}" style=" overflow: hidden; max-height: 150px; border-bottom: 1px solid #ccc;">
+        <div class="image-container" style="border-radius: 50%;">
+          <img src="{{ episode.image_url }}" alt="Episode Image" width="125" />
+        </div>
+        <div class="text-content" style="white-space: nowrap;">
+          <div id="episode-title-{{episode.pk}}">
+            {{ episode.title }}
+          </div>
+          Published: {{ episode.pub_date }}
+          <a href="{{episode.media_link}}" class="btn btn-link">Source</a>
+          <br />
+
+          {% if episode.audio_url %}
+          <button type="button" class="btn btn-primary" onclick="playEpisode('{% url "play_episode" episode.pk %}', {{episode.pk}})">Play</button>
+
+          {% elif episode.queued_for_download %}
+          <button id="episode-download-btn-{{episode.pk}}" type="button" class="btn btn-primary"
+            onclick="downloadEpisode('{% url "add_to_rss_episode_download_queue" episode.pk %}', {{episode.pk}})" disabled="true">Queued</button>
+          {% else %}
+          <button id="episode-download-btn-{{episode.pk}}" type="button" class="btn btn-primary"
+            onclick="downloadEpisode('{% url "add_to_rss_episode_download_queue" episode.pk %}', {{episode.pk}})">Download</button>
+          {% endif %}
+
+          <button type="button" class="btn btn-danger" onclick="hideEpisode('{% url "hide_episode" episode.pk %}', {{episode.pk}})">Hide</button>
+        </div>
+      </div>
+      {% endfor %}
     </div>
-    Published: {{ episode.pub_date }}
-    <a href="{{episode.media_link}}" class="btn btn-link">Source</a>
-    <br />
 
-    {% if episode.audio_url %}
-    <button type="button" class="btn btn-primary" onclick="playEpisode('{% url "play_episode" episode.pk %}', {{episode.pk}})">Play</button>
-    
-    {% elif episode.queued_for_download %}
-    <button id="episode-download-btn-{{episode.pk}}" type="button" class="btn btn-primary" onclick="downloadEpisode('{% url "add_to_rss_episode_download_queue" episode.pk %}', {{episode.pk}})" disabled="true">Queued</button>
-    {% else %}
-    <button id="episode-download-btn-{{episode.pk}}" type="button" class="btn btn-primary" onclick="downloadEpisode('{% url "add_to_rss_episode_download_queue" episode.pk %}', {{episode.pk}})">Download</button>
-    {% endif %}
+    <div class="sticky-footer player-container">
+      <div class="controls">
+        <a href="" class="player-button">
+          <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M26.1333 38.4C25.0667 39.2 25.0667 40.8 26.1333 41.6L52.8 61.6C54.1185 62.5889 55 61.6481 55 60L55 20C55 18.3519 54.1185 17.4111 52.8 18.4L26.1333 38.4Z" fill="#9B51E0" stroke="#9B51E0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
+            <path d="M24 16L24 64" stroke="#2F80ED" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </a>
+        <a href="" class="player-button">
+          <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M57.9611 38.2635C59.3048 39.0313 59.3048 40.9687 57.9612 41.7365L21.9923 62.2901C20.659 63.052 19 62.0893 19 60.5536L19 19.4464C19 17.9107 20.659 16.948 21.9923 17.7099L57.9611 38.2635Z" fill="#9b51e0" stroke="#9b51e0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
+          </svg>
+        </a>
+        <p class="player-text">{{ player_episode.subscription.title|slice:":40" }} <br/>{{player_episode.title|slice:":40"}}</p>
+        <a class="m-1" href="" class="player-button">
+          <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M53.8667 38.4C54.9333 39.2 54.9333 40.8 53.8667 41.6L27.2 61.6C25.8815 62.5889 24 61.6481 24 60L24 20C24 18.3519 25.8815 17.4111 27.2 18.4L53.8667 38.4Z" fill="#9B51E0" stroke="#9B51E0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
+            <path d="M56 16L56 64" stroke="#2F80ED" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </a>
+      </div>
+      <audio id="player-audio" controls class="player-audio">
+        <source src="{{ player_episode.audio_url }}" type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
+    </div>
+</div>
+<div class="col-sm ">
+</div>
+</div>
+</div>
 
-    <button type="button" class="btn btn-danger" onclick="hideEpisode('{% url "hide_episode" episode.pk %}', {{episode.pk}})">Hide</button>
-  </div>
-</div>
-{% endfor %}
-</div>
-
-<div class="sticky-header"
-  style="position: sticky; bottom: 0; background: #fff; padding: 10px; display: flex; flex-direction: column; justify-content: space-between;">
-  <div>{{ player_episode.title }} - {{player_episode.pub_date}}</div>
-  <audio id= "player-audio" controls>
-    <source src="{{ player_episode.audio_url }}" type="audio/mpeg">
-    Your browser does not support the audio element.
-  </audio>
-</div>
 {% endblock %}
