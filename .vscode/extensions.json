@@ -6,6 +6,7 @@
         "charliermarsh.ruff",
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "ms-vscode.powershell"
+        "ms-vscode.powershell",
+        "seatonjiang.gitmoji-vscode"
     ]
 }

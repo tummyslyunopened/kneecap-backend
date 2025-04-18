@@ -63,7 +63,7 @@
           </svg>
         </a>
       </div>
-      <audio id="player-audio" controls class="player-audio">
+      <audio id="player-audio" controls class="player-audio" onloadedmetadata="setPlayerToTime({{ player_episode.playback_time}} )">
         <source src="{{ player_episode.audio_url }}" type="audio/mpeg">
         Your browser does not support the audio element.
       </audio>

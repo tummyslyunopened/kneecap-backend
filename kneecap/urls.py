@@ -15,6 +15,7 @@ from dashboard.views import (
     play_episode,
     toggle_feed_chronological,
     refresh_subscriptions,
+    set_episode_playback_time
 )
 
 urlpatterns = [
@@ -54,6 +55,11 @@ urlpatterns = [
         "refresh-subscriptions",
         refresh_subscriptions,
         name="refresh_subscriptions",
+    ),
+    path(
+        "set-episode-playback-time",
+        set_episode_playback_time,
+        name="set_episode_playback_time",
     ),
     # path("rss/", include(rss_urls)),
     # path("api/", include(api_urls)),

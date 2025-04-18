@@ -54,6 +54,7 @@ class Episode(models.Model):
     hidden = models.BooleanField(default=False)
     queued_for_download = models.BooleanField(default=False)
     duration = models.IntegerField(default=0)
+    playback_time = models.IntegerField(default=0)
 
     class Meta:
         ordering = ["-pub_date"]

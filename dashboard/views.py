@@ -47,6 +47,15 @@ def play_episode(request, pk):
         player.save()
     return HttpResponse("<script>history.back();</script>")
 
+def set_episode_playback_time(request):
+    if request.method == "POST":
+        playback_time = request.POST['data']
+        player = Player.get_solo()
+        player.episode.playback_time = float(playback_time)
+        player.episode.save()
+        player.save()
+    return HttpResponse("<script>history.back();</script>")
+
 
 def toggle_feed_chronological(request):
     if request.method == "POST":

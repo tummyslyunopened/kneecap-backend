@@ -96,11 +96,12 @@ function episodeMethodPost(url, episodeId) {
   });
 }
 
-function simplePost(url) {
+function simplePost(url, data=null) {
   $.ajax({
     type: "POST",
     url: url,
     data: {
+      'data': data,
       'csrfmiddlewaretoken': window.CSRF_TOKEN
     }
   });
@@ -134,8 +135,15 @@ function toggleChron(url) {
   window.scrollTo(0, 0); 
   lastScrollTime = new Date().getTime() + 5000;
 }
-function logCurrentPlaytime() {
-  const audioElement = document.getElementById('player-audio');
+
+function logCurrentPlaybackTime() {
+  const currentTime = document.getElementById('player-audio').currentTime;
+  console.log(currentTime)
+  simplePost('/set-episode-playback-time', currentTime)
+}
+
+function setPlayerToTime(time) {
+  document.getElementById('player-audio').currentTime = time;
 }
 
 document.addEventListener('keydown', function (event) {
@@ -150,7 +158,7 @@ document.addEventListener('keydown', function (event) {
   }
 });
 
-setInterval(logCurrentPlaytime, 3000);
+setInterval(logCurrentPlaybackTime, 3000);
 setInterval(marqueeTitle, 100);
 setTimeout(initEpisodePreviewGestures, 2000);
 setInterval(() => {
