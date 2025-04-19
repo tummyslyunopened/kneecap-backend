@@ -2,16 +2,18 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-PROD = os.getenv("PROD") == "True"
+
+PROD = os.getenv("PROD") == "TRUE"
 if not PROD: 
     load_dotenv()
 
-DEBUG = os.getenv("DEBUG") == "True"
+DEBUG = os.getenv("DEBUG") == "TRUE"
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALLOWED_HOSTS = [os.getenv("ALLOWED_HOST")]
 STATIC_DIR = os.getenv("STATIC_DIR")
-MEDIA_ROOT = os.getenv("MEDIA_DIR")
+MEDIA_ROOT = os.getenv("MEDIA_ROOT")
 DB_PATH = os.getenv("DB_PATH")
+SITE_URL = os.getenv("SITE_URL")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -57,7 +59,7 @@ WSGI_APPLICATION = "kneecap.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": DB_PATH , 
     }
 }
 
@@ -66,7 +68,6 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-SITE_URL = os.getenv("SITE_URL")
 STATIC_URL = "/static/"
 
 if STATIC_DIR: 
