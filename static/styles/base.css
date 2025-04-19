@@ -52,10 +52,6 @@
 .sticky-footer {
   position: sticky;
   bottom: 0;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
   z-index: 9999;
 }
 
@@ -64,14 +60,18 @@
 }
 
 .player-button {
-  display: flex;
   align-items: center;
-  margin: auto;
+  margin-left: 10px;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .player-text {
   color: white;
-  margin: auto;
+  margin-left: 10px ;
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .player-audio {

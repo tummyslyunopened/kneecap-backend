@@ -20,7 +20,7 @@
           <div id="episode-title-{{episode.pk}}">
             {{ episode.title }}
           </div>
-          📅{{ episode.pub_date|date:"mdHi" }}
+          📅{{ episode.pub_date|date:"m/d H:i" }}
           ⏲️{{ episode.duration|default:"0" }}
           <a href="{{episode.media_link}}" class="btn btn-link">Source</a>
           <br />
@@ -44,6 +44,10 @@
 
     <div class="sticky-footer player-container">
       <div class="controls">
+        <p class="player-text">
+          {{ player_episode.subscription.title|slice:":40" }}
+          <br/>{{player_episode.title|slice:":40"}}
+        </p>
         <a href="" class="player-button">
           <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M26.1333 38.4C25.0667 39.2 25.0667 40.8 26.1333 41.6L52.8 61.6C54.1185 62.5889 55 61.6481 55 60L55 20C55 18.3519 54.1185 17.4111 52.8 18.4L26.1333 38.4Z" fill="#9B51E0" stroke="#9B51E0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
@@ -51,11 +55,23 @@
           </svg>
         </a>
         <a href="" class="player-button">
+          <svg role="img" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" aria-labelledby="historyIconTitle" stroke="#9b51e0" stroke-width="1.8" stroke-linecap="square" stroke-linejoin="miter" fill="none" color="#9b51e0"> <title id="historyIconTitle">History</title> <polyline points="1 12 3 14 5 12"/> <polyline points="12 7 12 12 15 15"/> <path d="M12,21 C16.9705627,21 21,16.9705627 21,12 C21,7.02943725 16.9705627,3 12,3 C7.02943725,3 3,7.02943725 3,12 C3,11.975305 3,12.3086383 3,13"/> </svg>
+        </a>       
+        <a href="" class="player-button">
           <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M57.9611 38.2635C59.3048 39.0313 59.3048 40.9687 57.9612 41.7365L21.9923 62.2901C20.659 63.052 19 62.0893 19 60.5536L19 19.4464C19 17.9107 20.659 16.948 21.9923 17.7099L57.9611 38.2635Z" fill="#9b51e0" stroke="#9b51e0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
           </svg>
         </a>
-        <p class="player-text">{{ player_episode.subscription.title|slice:":40" }} <br/>{{player_episode.title|slice:":40"}}</p>
+        <a href="" class="player-button">
+        <svg role="img" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" aria-labelledby="historyIconTitle" stroke="#9b51e0" stroke-width="1.8" stroke-linecap="square" stroke-linejoin="miter" fill="none" color="#9b51e0">
+          <title id="historyIconTitle">History</title>
+          <g transform="scale(-1,1) translate(-24,0)">
+            <polyline points="1 12 3 14 5 12"/>
+            <polyline points="12 7 12 12 15 15"/>
+            <path d="M12,21 C16.9705627,21 21,16.9705627 21,12 C21,7.02943725 16.9705627,3 12,3 C7.02943725,3 3,7.02943725 3,12 C3,11.975305 3,12.3086383 3,13"/>
+          </g>
+        </svg>
+        </a>       
         <a class="m-1" href="" class="player-button">
           <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M53.8667 38.4C54.9333 39.2 54.9333 40.8 53.8667 41.6L27.2 61.6C25.8815 62.5889 24 61.6481 24 60L24 20C24 18.3519 25.8815 17.4111 27.2 18.4L53.8667 38.4Z" fill="#9B51E0" stroke="#9B51E0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
