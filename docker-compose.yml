@@ -1,0 +1,35 @@
+services:
+  kneecap:
+    image: kneecap/server:0.0
+    volumes:
+      - kneecap_data:/app/
+      - kneecap_db:/db/
+      - kneecap_static:/static/
+      - kneecap_media:/media/
+    environment:
+      PROD: $PROD
+      DEBUG: $DEBUG
+      SECRET_KEY: $SECRET_KEY
+      ALLOWED_HOST: $ALLOWED_HOST
+      SITE_URL: $SITE_URL
+      STATIC_DIR: $STATIC_DIR
+      MEDIA_ROOT: $MEDIA_ROOT
+      DB_PATH: $DB_PATH
+    networks:
+      - kneecap_dmz
+    ports:
+      - "80:80"
+
+volumes:
+  kneecap_data:
+    external: true
+  kneecap_db:
+    external: true
+  kneecap_static:
+    external: true
+  kneecap_media:
+    external: true
+
+networks:
+  kneecap_dmz:
+    external: true
