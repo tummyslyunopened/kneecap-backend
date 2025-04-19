@@ -14,7 +14,6 @@ __pycache__/
 *.pyd
 media/
 staticfiles/
-.env
 
 # IDEs and editors
 .idea/
@@ -31,6 +30,10 @@ env/
 ENV/
 .venv/
 activate/
+.env
+prod.env
+dev.env
+
 
 # for testing data
 .data
@@ -45,3 +48,4 @@ htmlcov/
 
 .ruff_cache/
 .backburner/
+

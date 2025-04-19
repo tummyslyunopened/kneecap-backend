@@ -1,21 +1,41 @@
-from pathlib import Path
 import os
+from pathlib import Path
+import logging
 from dotenv import load_dotenv
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-PROD = os.getenv("PROD") == "TRUE"
+def validate_env(env_name, default=None, blank=False, bool=False, redact=True):
+    declared_env = os.getenv(env_name)
+    if not blank and not declared_env and default is None:
+        raise ValueError(f"Environment variable {env_name} is not set and no default value provided.")
+    if not blank and not declared_env:
+        logger.warning(f"Environment variable {env_name} is not set. Using default value if provided.")
+    if bool and declared_env:
+        declared_env = declared_env.lower() == 'true'
+    if not redact and declared_env:
+        logger.info(f"Environment variable {env_name} declared: {declared_env}")
+    elif not redact:
+        logger.info(f"Environment variable {env_name} validated: {default}")
+    else:
+        logger.info(f"Environment variable {env_name} validated: **********")
+    return declared_env if declared_env is not None else default
+
+DEBUG = True
+BASE_DIR = Path(__file__).resolve().parent.parent  # Two levels up
+PROD = validate_env("PROD", default=False, bool=True)
 if not PROD: 
-    load_dotenv()
+    load_dotenv(dotenv_path=os.path.join(BASE_DIR, ".dev", ".env"), override=True)
 
-DEBUG = os.getenv("DEBUG") == "TRUE"
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALLOWED_HOSTS = [os.getenv("ALLOWED_HOST")]
-STATIC_DIR = os.getenv("STATIC_DIR")
-MEDIA_ROOT = os.getenv("MEDIA_ROOT")
-DB_PATH = os.getenv("DB_PATH")
-SITE_URL = os.getenv("SITE_URL")
-
-BASE_DIR = Path(__file__).resolve().parent.parent
+SECRET_KEY = validate_env("SECRET_KEY")
+ALLOWED_HOSTS = [validate_env("ALLOWED_HOST", default="127.0.0.1", redact=False)]
+STATICFILES_DIRS = [validate_env("STATIC_DIR", default=os.path.join(BASE_DIR, "static/"), redact=False)]
+MEDIA_ROOT = validate_env("MEDIA_ROOT", default=os.path.join(BASE_DIR, "media"), redact=False)
+DB_PATH = validate_env("DB_PATH", default=os.path.join(BASE_DIR, "db.sqlite3"), redact=False)
+SITE_URL = validate_env("SITE_URL", default="127.0.0.1", redact=False)
+STATIC_URL = validate_env("STATIC_URL", default="/static/", redact=False)
+MEDIA_URL = validate_env("MEDIA_URL", default="/media/", redact=False)
 
 INSTALLED_APPS = [
     "django.contrib.auth",
@@ -59,28 +79,11 @@ WSGI_APPLICATION = "kneecap.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": DB_PATH , 
+        "NAME": DB_PATH 
     }
 }
-
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
-
-STATIC_URL = "/static/"
-
-if STATIC_DIR: 
-    STATICFILES_DIRS = [
-        STATIC_DIR
-    ]
-else:
-    STATICFILES_DIRS = [
-        BASE_DIR / "static",
-    ]
-if not MEDIA_ROOT:
-    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-MEDIA_URL = "/media/"
-
