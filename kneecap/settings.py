@@ -2,15 +2,19 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+PROD = os.getenv("PROD") == "True"
+if not PROD: 
+    load_dotenv()
 
 DEBUG = os.getenv("DEBUG") == "True"
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALLOWED_HOSTS = [os.getenv("ALLOWED_HOST")]
+STATIC_DIR = os.getenv("STATIC_DIR")
+MEDIA_ROOT = os.getenv("MEDIA_DIR")
+DB_PATH = os.getenv("DB_PATH")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.getenv("SECRET_KEY")
 
-print(os.getenv("ALLOWED_HOST"))
-ALLOWED_HOSTS = [os.getenv("ALLOWED_HOST")]
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -64,9 +68,18 @@ USE_TZ = True
 
 SITE_URL = os.getenv("SITE_URL")
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+
+if STATIC_DIR: 
+    STATICFILES_DIRS = [
+        STATIC_DIR
+    ]
+else:
+    STATICFILES_DIRS = [
+        BASE_DIR / "static",
+    ]
+if not MEDIA_ROOT:
+    MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
