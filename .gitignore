@@ -33,7 +33,8 @@ activate/
 .env
 prod.env
 dev.env
-
+.dev/
+logs/
 
 # for testing data
 .data
