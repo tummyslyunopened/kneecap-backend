@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.db import models
-from subscriptions.models import Queue, Subscription, Episode
+from subscriptions.models import Subscription, Episode
 from tools.media import download_media_requests
+from tools.models import Queue
 from tools.rss import parse_rss_entries, parse_rss_feed_info
 import logging
 
