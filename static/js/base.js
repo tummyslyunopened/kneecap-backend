@@ -1,214 +1,100 @@
-const episodeTitleSelector = '[id^="episode-title-"]';
-const maxEpisodeTitleWidth = 355;
-const episodeTitleMarqueeSpeed = 95;
-const marqueeFocusTimeDelay = 1;
+export const CONSTANTS = {
+  MAX_EPISODE_TITLE_WIDTH: 375,
+  EPISODE_TITLE_MARQUEE_SPEED: 95,
+  MARQUEE_FOCUS_TIME_DELAY: 1,
+  SCROLL_DEBOUNCE_TIME: 500,
+  PLAYBACK_LOG_INTERVAL: 3000,
+  MARQUEE_CHECK_INTERVAL: 100,
+  SCROLL_OFFSET: 75,
+  SKIP_TIME: 15, 
+  SCROLL_EPISODE_OFFSET: 60,
 
-let lastTopEpisode = null;
-let lastScrollTime = null;
+  API_URLS: {
+    SET_PLAYBACK_TIME: '/set-episode-playback-time',
+    HIDE_EPISODE: '/hide-episode',
+    DOWNLOAD_EPISODE: '/download-episode',
+    PLAY_EPISODE: '/play-episode',
+    TOGGLE_CHRONOLOGICAL: '/toggle-feed-chronological',
+    HIDE_ALL_EPISODES: '/hide-all-episodes',
+    REFRESH_SUBSCRIPTIONS: '/refresh-subscriptions',
+  },
 
+  KEYBOARD_SHORTCUTS: {
+    PLAY_PAUSE: ' ',  
+    SKIP_FORWARD: 'ArrowRight',
+    SKIP_BACKWARD: 'ArrowLeft',
+    VOLUME_UP: 'ArrowUp',
+    VOLUME_DOWN: 'ArrowDown',
+  },
+};
 
-function topElement(selector) {
-  const elements = document.querySelectorAll(selector);
-  let topEpisode = null;
-  let topEpisodeDistance = Infinity;
+export const state = {
+  lastScrollTime: Date.now(),
+  lastTopEpisode: null,
+  currentTopEpisode: null,
+  isPlaying: false,
+  marqueeStyleSheet: null,
+};
 
-  elements.forEach(element => {
-    const rect = element.getBoundingClientRect();
-    const distance = rect.top;
-    if (distance >= 0 && distance < topEpisodeDistance) {
-      topEpisodeDistance = distance;
-      topEpisode = element;
-    }
-  });
-  return topEpisode
-}
+import { debounce } from './utils.js';
+import { findTopEpisodeElement } from './uiMeasure.js';
+import ApiService from './apiService.js';
+import AudioPlayer from './audioPlayer.js';
+import EpisodeManager from './episodeManager.js';
+import { scrollToCurrentTopEpisode } from './uxSugar.js';
+import { addMarqueeEffect, removeMarqueeEffect } from './marquee.js';
 
-function getMarqueeKeyframeParams(distance, speed, delay) {
-  let animationTime = distance / speed
-  let totalTime = 2 * delay + animationTime
-  let beginAnimationPercentage = 100 * delay / totalTime
-  let endAnimationPercentage = beginAnimationPercentage + 100 * animationTime / totalTime
-  return {
-    distance: distance,
-    totalTime: totalTime,
-    beginAnimationPercentage: beginAnimationPercentage,
-    endAnimationPercentage: endAnimationPercentage
+const episodeManager = new EpisodeManager();
+window.hideEpisode = episodeManager.hideEpisode.bind(episodeManager);
+window.downloadEpisode = episodeManager.downloadEpisode.bind(episodeManager);
+window.playEpisode = episodeManager.playEpisode.bind(episodeManager);
+window.hideAll = episodeManager.hideAll.bind(episodeManager);
+window.refreshFeed = episodeManager.refreshFeed.bind(episodeManager);
+window.toggleChron = episodeManager.toggleChron.bind(episodeManager);
+const audioPlayer = new AudioPlayer();
+window.setPlayerToTime = audioPlayer.setTime.bind(audioPlayer);
+
+const logPlaybackTime = async () => {
+  const currentTime = audioPlayer.getCurrentTime();
+  try {
+    await ApiService.post(CONSTANTS.API_URLS.SET_PLAYBACK_TIME, currentTime);
+  } catch (error) {
   }
-}
+};
 
-function marqueeTitle() {
-  topEpisode = topElement(episodeTitleSelector)
-  if (topEpisode) {
-
-    if (lastTopEpisode && lastTopEpisode !== topEpisode) {
-      lastTopEpisode.style.color = '';
-      lastTopEpisode.style.whiteSpace = '';
-      lastTopEpisode.style.overflow = '';
-      lastTopEpisode.style.position = '';
-      lastTopEpisode.style.animation = '';
-      lastTopEpisode = topEpisode;
-    }
-    const titleWidth = topEpisode.offsetWidth;
-    if (titleWidth > maxEpisodeTitleWidth) {
-      let overflowWidth = titleWidth - maxEpisodeTitleWidth
-      marqueeParams = getMarqueeKeyframeParams(overflowWidth, episodeTitleMarqueeSpeed, marqueeFocusTimeDelay)
-
-      topEpisode.style.whiteSpace = 'nowrap';
-      topEpisode.style.overflow = 'hidden';
-      topEpisode.style.position = 'relative';
-
-      const keyframes = `
-        @keyframes scroll-left {
-          0% {
-            transform: translateX(0); /* Start from the initial position */
-          }
-          ${marqueeParams.beginAnimationPercentage}% {
-            transform: translateX(0); /* Start from the initial position */
-          }
-          ${marqueeParams.endAnimationPercentage}% {
-            transform: translateX(-${marqueeParams.distance}px); /* Scroll to the left based on text width */
-          }
-          100% {
-            transform: translateX(-${marqueeParams.distance}px); /* Scroll to the left based on text width */
-          }
-        }
-      `;
-
-      const styleSheet = document.createElement("style");
-      styleSheet.type = "text/css";
-      styleSheet.innerText = keyframes;
-      document.head.appendChild(styleSheet);
-      topEpisode.style.animation = 'scroll-left ' + (marqueeParams.totalTime) + 's linear infinite';
-      lastTopEpisode = topEpisode;
-    }
-  }
-}
-
-
-function episodeMethodPost(url, episodeId) {
-  $.ajax({
-    type: "POST",
-    url: url,
-    data: {
-      'episode_id': episodeId,
-      'csrfmiddlewaretoken': window.CSRF_TOKEN
-    }
-  });
-}
-
-function simplePost(url, data=null) {
-  $.ajax({
-    type: "POST",
-    url: url,
-    data: {
-      'data': data,
-      'csrfmiddlewaretoken': window.CSRF_TOKEN
-    }
-  });
-}
-
-function hideEpisode(url, episodeId) {
-  episodeMethodPost(url, episodeId)
-  let el = document.getElementById(episodeId);
-  el.remove()
-  lastTopEpisode = null;
-}
-
-function downloadEpisode(url, episodeId) {
-  episodeMethodPost(url, episodeId);
-  let el = document.getElementById('episode-download-btn-' + episodeId);
-  el.disabled = true;
-  el.innerHTML = "Queued"
-}
-
-function playEpisode(url, episodeId) {
-  episodeMethodPost(url, episodeId);
-}
-
-function toggleChron(url) {
-  simplePost(url);
-  el = document.getElementById('episode-previews');
-  const children = Array.from(el.children);
-  children.reverse();
-  el.innerHTML = ''; 
-  children.forEach(child => el.appendChild(child)); // Reappend children in reversed order
-  window.scrollTo(0, 0); 
-  lastScrollTime = new Date().getTime() + 5000;
-}
-
-function logCurrentPlaybackTime() {
-  const currentTime = document.getElementById('player-audio').currentTime;
-  console.log(currentTime)
-  simplePost('/set-episode-playback-time', currentTime)
-}
-
-function setPlayerToTime(time) {
-  document.getElementById('player-audio').currentTime = time;
-}
-
-document.addEventListener('keydown', function (event) {
-  if (event.code === 'Space') {
-    event.preventDefault(); // Prevent scrolling the page
-    var audio = document.getElementById('player-audio');
-    if (audio.paused) {
-      audio.play();
+const handleScroll = debounce(() => {
+  state.lastScrollTime = Date.now();
+  state.lastTopEpisode = state.currentTopEpisode;
+  state.currentTopEpisode = findTopEpisodeElement();
+  if (state.currentTopEpisode) {
+    scrollToCurrentTopEpisode();
+    const titleElem = state.currentTopEpisode.querySelector('.episode-title');
+    const lastTitleElem = state.lastTopEpisode && state.lastTopEpisode.querySelector
+      ? state.lastTopEpisode.querySelector('.episode-title')
+      : null;
+    if (state.lastTopEpisode !== state.currentTopEpisode) {
+      removeMarqueeEffect(lastTitleElem, CONSTANTS.MAX_EPISODE_TITLE_WIDTH);
     } else {
-      audio.pause();
+      addMarqueeEffect(titleElem, CONSTANTS.MAX_EPISODE_TITLE_WIDTH);
     }
   }
-});
+}, CONSTANTS.SCROLL_DEBOUNCE_TIME);
 
-setInterval(logCurrentPlaybackTime, 3000);
-setInterval(marqueeTitle, 100);
-setTimeout(initEpisodePreviewGestures, 2000);
-setInterval(() => {
-  const currentTime = new Date().getTime();
-  if (currentTime - lastScrollTime > 500 && lastTopEpisode) {
-    window.scrollTo({ top: lastTopEpisode.offsetTop - 75, behavior: 'smooth' });
-  }
-}, 100);
+window.addEventListener('scroll', handleScroll);
+setInterval(logPlaybackTime, CONSTANTS.PLAYBACK_LOG_INTERVAL);
 
-window.addEventListener('scroll', function () {
-  lastScrollTime = new Date().getTime();
-});
+state.currentTopEpisode = findTopEpisodeElement();
+addMarqueeEffect(state.currentTopEpisode.querySelector('.episode-title'), CONSTANTS.MAX_EPISODE_TITLE_WIDTH);
 
-function initEpisodePreviewGestures() {
-  el = document.getElementById('episode-previews');
-  const children = Array.from(el.children);
-  children.forEach(child => {
-
-    child.addEventListener('touchstart', function (event) {
-      console.log(event)
-      touchstartX = event.changedTouches[0].screenX;
-      touchstartY = event.changedTouches[0].screenY;
-    }, false);
-
-    child.addEventListener('touchend', function (event) {
-      touchendX = event.changedTouches[0].screenX;
-      touchendY = event.changedTouches[0].screenY;
-      handleGesture();
-    }, false);
-    
-    function handleGesture() {
-      if (touchendX < touchstartX) {
-        console.log('Swiped Left');
-      }
-
-      if (touchendX > touchstartX) {
-        console.log('Swiped Right');
-      }
-
-      if (touchendY < touchstartY) {
-        console.log('Swiped Up');
-      }
-
-      if (touchendY > touchstartY) {
-        console.log('Swiped Down');
-      }
-
-      if (touchendY === touchstartY) {
-        console.log('Tap');
-      }
-    }
+document.addEventListener('DOMContentLoaded', () => {
+  const previews = document.querySelectorAll('.episode-preview');
+  previews.forEach(preview => {
+    const title = preview.querySelector('.episode-title');
+    preview.addEventListener('mouseenter', () => {
+      addMarqueeEffect(title, CONSTANTS.MAX_EPISODE_TITLE_WIDTH);
+    });
+    preview.addEventListener('mouseleave', () => {
+      removeMarqueeEffect(title, CONSTANTS.MAX_EPISODE_TITLE_WIDTH);
+    });
   });
-}
+});

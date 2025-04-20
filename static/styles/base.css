@@ -1,83 +1,96 @@
+.feed-col {
+  max-width: 516px;
+}
+
 .image-container {
   margin-right: 10px;
-  border-radius: 50%;
   z-index: 9998;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.image-container img {
+  object-fit: cover;
+  transition: transform 0.3s ease;
+  max-height: 90px;
+  max-width: 90px;
+  
+}
+
+.image-container img:hover {
+  transform: scale(1.1);
 }
 
 .episode-preview {
   align-items: center;
   display: flex;
-  flex-direction: row;
-  overflow: hidden;
   max-height: 150px;
   border-bottom: 1px solid #ccc;
-  background-color:#e5e0f8;
+  background-color: #e5e0f8;
+  transition: background-color 0.3s ease;
+  padding: 10px;
+  max-height: 110px;
+  min-height: 110px;
 }
 
-.subscription-preview {
-  align-items: center;
+.episode-preview:hover {
+  background-color: #d1c9f0;
+}
+
+.episode-preview .text-content {
   display: flex;
   flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-.jobs, .subscriptions, .episodes{
-  display: inline-block;
-  vertical-align: top;
-}
-
-@media (max-width: 768px) {
-  .jobs .subscriptions, .episodes{
-    display: block;
-  }
-}
-
-.sticky {
-  background-color: #1b1340;
-}
-
-.player-container {
-  background-color: #1b1340;
-  color: white;
+.episode-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: right;
 }
 
 .sticky-header {
+  background-color: #1b1340;
+  color: white;
   position: sticky;
   top: 0;
   padding: 10px;
   display: flex;
   justify-content: space-between;
   z-index: 9999;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  word-break: normal;
 }
 
 .sticky-footer {
   position: sticky;
   bottom: 0;
+  left: 0;
+  width: 100%;
+  max-width: 540px;
   z-index: 9999;
 }
 
-.controls {
+/* Add padding to main content to prevent player overlap */
+.container {
+  padding-bottom: 160px;
+}
+
+.episode-container {
   display: flex;
+  flex-direction: column;
 }
 
-.player-button {
-  align-items: center;
-  margin-left: 10px;
-  margin-top: auto;
-  margin-bottom: auto;
-}
-
-.player-text {
-  color: white;
-  margin-left: 10px ;
-  margin-right: auto;
-  margin-top: auto;
-  margin-bottom: auto;
-}
-
-.player-audio {
-  display: none;
-}
-
-.text-content {
+.episode-text {
+  /* width: 375px; */
   white-space: nowrap;
+}
+
+.notes-col {
+  width: 100%;
+  z-index: 1;
+  background-color: white;
 }

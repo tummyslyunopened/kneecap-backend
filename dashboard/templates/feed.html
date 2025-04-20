@@ -1,93 +1,109 @@
 {% extends "base.html" %}
 {% block title %}Feed{% endblock %}
 {% block content %}
-<div class="container">
-<div class="row">
-<div class="col-sm" style="max-width: 540px;">
-<div class="sticky-header sticky">
-  <button type="button" class="btn btn-secondary" onclick="hideAll('{% url "hide_all_episodes" %}')">Hide All</button>
-  <button type="button" class="btn btn-secondary" onclick="toggleChron('{% url "toggle_feed_chronological" %}')">Toggle Chron</button>
-  <button type="button" class="btn btn-secondary" onclick="refreshFeed('{% url "refresh_subscriptions" %}')">Refresh</button>
-</div>
+<div class="main-content">
+  <div style="display: flex; flex-direction: row;">
+    <div class="feed-col">
+      <div class="sticky-header">
+        <button type="button" class="btn btn-secondary" onclick="hideAll()">Hide All</button>
+        <button type="button" class="btn btn-secondary" onclick="toggleChron()">Toggle Chron</button>
+        <button type="button" class="btn btn-secondary" onclick="refreshFeed()">Refresh</button>
+      </div>
 
-    <div id="episode-previews" class="episode-previews">
-      {% for episode in episodes %}
-      <div class="episode-preview mb-1" id="{{episode.pk}}">
-        <div class="image-container">
-          <img src="{{ episode.image_url }}" alt="Episode Image" width="125" />
-        </div>
-        <div class="text-content">
-          <div id="episode-title-{{episode.pk}}">
-            {{ episode.title }}
+      <div id="episode-previews" class="episode-previews">
+        {% for episode in episodes %}
+        <div class="episode-preview mb-1" id="{{episode.pk}}">
+          <div class="image-container">
+            <img src="{{ episode.image_url }}" alt="Episode Image" width="125" />
           </div>
-          📅{{ episode.pub_date|date:"m/d H:i" }}
-          ⏲️{{ episode.duration|default:"0" }}
-          <a href="{{episode.media_link}}" class="btn btn-link">Source</a>
-          <br />
+          <div class="episode-container">
+            <div class="episode-text">
+              <div class="episode-title">
+                {{ episode.title }}
+              </div>
+              <div class="episode-info">
+                {{ episode.pub_date|date:"m/d H:i" }}
+                {{ episode.duration|default:"0" }}
+                <a href="{{episode.media_link}}" class="btn btn-link">Source</a>
+                {% if episode.audio_url %}
+                <a href="{{episode.audio_url}}" class="btn btn-link">Audio</a>
+                {% endif %}
+              </div>
+            </div>
+            <div class="episode-buttons">
+              <button type="button" class="btn btn-primary" onclick="playEpisode({{episode.pk}})">Play</button>
+              <button type="button" class="btn btn-danger" onclick="hideEpisode({{episode.pk}})">Hide</button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
 
-          {% if episode.audio_url %}
-          <button type="button" class="btn btn-primary" onclick="playEpisode('{% url "play_episode" episode.pk %}', {{episode.pk}})">Play</button>
+      <div class="sticky-footer player-container">
+        <div class="controls">
+          <p class="player-text">
+            {{ player_episode.subscription.title|slice:":40" }}
+            <br />{{player_episode.title|slice:":40"}}
+          </p>
+          <div class="player-controls-group">
+            <a href="#" class="player-button skip-backward">
+              <svg role="img" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+                aria-labelledby="historyIconTitle" stroke="#9b51e0" stroke-width="1.8" stroke-linecap="square"
+                stroke-linejoin="miter" fill="none" color="#9b51e0">
+                <title id="historyIconTitle">Skip Backward</title>
+                <polyline points="1 12 3 14 5 12" />
+                <polyline points="12 7 12 12 15 15" />
+                <path
+                  d="M12,21 C16.9705627,21 21,16.9705627 21,12 C21,7.02943725 16.9705627,3 12,3 C7.02943725,3 3,7.02943725 3,12 C3,11.975305 3,12.3086383 3,13" />
+              </svg>
+            </a>
+            <a href="#" class="player-button play-button">
+              <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M26.1333 38.4C25.0667 39.2 25.0667 40.8 26.1333 41.6L52.8 61.6C54.1185 62.5889 55 61.6481 55 60L55 20C55 18.3519 54.1185 17.4111 52.8 18.4L26.1333 38.4Z"
+                  fill="#9B51E0" stroke="#9B51E0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
+              </svg>
+            </a>
+            <a href="#" class="player-button skip-forward">
+              <svg role="img" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+                aria-labelledby="historyIconTitle" stroke="#9b51e0" stroke-width="1.8" stroke-linecap="square"
+                stroke-linejoin="miter" fill="none" color="#9b51e0">
+                <title id="historyIconTitle">Skip Forward</title>
+                <g transform="scale(-1,1) translate(-24,0)">
+                  <polyline points="1 12 3 14 5 12" />
+                  <polyline points="12 7 12 12 15 15" />
+                  <path
+                    d="M12,21 C16.9705627,21 21,16.9705627 21,12 C21,7.02943725 16.9705627,3 12,3 C7.02943725,3 3,7.02943725 3,12 C3,11.975305 3,12.3086383 3,13" />
+                </g>
+              </svg>
+            </a>
+          </div>
+        </div>
 
-          {% elif episode.queued_for_download %}
-          <button id="episode-download-btn-{{episode.pk}}" type="button" class="btn btn-primary"
-            onclick="downloadEpisode('{% url "add_to_rss_episode_download_queue" episode.pk %}', {{episode.pk}})" disabled="true">Queued</button>
-          {% else %}
-          <button id="episode-download-btn-{{episode.pk}}" type="button" class="btn btn-primary"
-            onclick="downloadEpisode('{% url "add_to_rss_episode_download_queue" episode.pk %}', {{episode.pk}})">Download</button>
-          {% endif %}
+        <div class="progress-container">
+          <div class="progress-bar"></div>
+          <div class="progress-handle"></div>
+        </div>
 
-          <button type="button" class="btn btn-danger" onclick="hideEpisode('{% url "hide_episode" episode.pk %}', {{episode.pk}})">Hide</button>
+        <div class="time-display">
+          <span class="current-time">0:00</span>
+          <span class="duration">0:00</span>
+        </div>
+        <div>
+          <audio id="player-audio" onloadedmetadata="setPlayerToTime({{ player_episode.playback_time }})">
+            {% if player_episode.audio_url %}
+              <source src="{{ player_episode.audio_url }}" type="audio/mpeg">
+            {% else %}
+              <source src="{{ player_episode.media_link }}" type="audio/mpeg">
+            {% endif %}
+            Your browser does not support the audio element.
+          </audio>
         </div>
       </div>
-      {% endfor %}
     </div>
-
-    <div class="sticky-footer player-container">
-      <div class="controls">
-        <p class="player-text">
-          {{ player_episode.subscription.title|slice:":40" }}
-          <br/>{{player_episode.title|slice:":40"}}
-        </p>
-        <a href="" class="player-button">
-          <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M26.1333 38.4C25.0667 39.2 25.0667 40.8 26.1333 41.6L52.8 61.6C54.1185 62.5889 55 61.6481 55 60L55 20C55 18.3519 54.1185 17.4111 52.8 18.4L26.1333 38.4Z" fill="#9B51E0" stroke="#9B51E0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
-            <path d="M24 16L24 64" stroke="#2F80ED" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </a>
-        <a href="" class="player-button">
-          <svg role="img" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" aria-labelledby="historyIconTitle" stroke="#9b51e0" stroke-width="1.8" stroke-linecap="square" stroke-linejoin="miter" fill="none" color="#9b51e0"> <title id="historyIconTitle">History</title> <polyline points="1 12 3 14 5 12"/> <polyline points="12 7 12 12 15 15"/> <path d="M12,21 C16.9705627,21 21,16.9705627 21,12 C21,7.02943725 16.9705627,3 12,3 C7.02943725,3 3,7.02943725 3,12 C3,11.975305 3,12.3086383 3,13"/> </svg>
-        </a>       
-        <a href="" class="player-button">
-          <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M57.9611 38.2635C59.3048 39.0313 59.3048 40.9687 57.9612 41.7365L21.9923 62.2901C20.659 63.052 19 62.0893 19 60.5536L19 19.4464C19 17.9107 20.659 16.948 21.9923 17.7099L57.9611 38.2635Z" fill="#9b51e0" stroke="#9b51e0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
-          </svg>
-        </a>
-        <a href="" class="player-button">
-        <svg role="img" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" aria-labelledby="historyIconTitle" stroke="#9b51e0" stroke-width="1.8" stroke-linecap="square" stroke-linejoin="miter" fill="none" color="#9b51e0">
-          <title id="historyIconTitle">History</title>
-          <g transform="scale(-1,1) translate(-24,0)">
-            <polyline points="1 12 3 14 5 12"/>
-            <polyline points="12 7 12 12 15 15"/>
-            <path d="M12,21 C16.9705627,21 21,16.9705627 21,12 C21,7.02943725 16.9705627,3 12,3 C7.02943725,3 3,7.02943725 3,12 C3,11.975305 3,12.3086383 3,13"/>
-          </g>
-        </svg>
-        </a>       
-        <a class="m-1" href="" class="player-button">
-          <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M53.8667 38.4C54.9333 39.2 54.9333 40.8 53.8667 41.6L27.2 61.6C25.8815 62.5889 24 61.6481 24 60L24 20C24 18.3519 25.8815 17.4111 27.2 18.4L53.8667 38.4Z" fill="#9B51E0" stroke="#9B51E0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
-            <path d="M56 16L56 64" stroke="#2F80ED" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </a>
-      </div>
-      <audio id="player-audio" controls class="player-audio" onloadedmetadata="setPlayerToTime({{ player_episode.playback_time}} )">
-        <source src="{{ player_episode.audio_url }}" type="audio/mpeg">
-        Your browser does not support the audio element.
-      </audio>
+    <div class="notes-col">
+      <div class="notes"></div>
     </div>
-</div>
-<div class="col-sm ">
-</div>
-</div>
-</div>
+  </div>
 
-{% endblock %}
+  {% endblock %}
