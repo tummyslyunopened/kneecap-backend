@@ -24,5 +24,7 @@
   },
   "peacock.color": "#c543d3",
   "python.envFile": "",
+  "vim.useCtrlKeys": false,
+
   "djlint.showInstallError": false,
 }
