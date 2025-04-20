@@ -4,7 +4,6 @@ import logging
 from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 def validate_env(env_name, default=None, blank=False, bool=False, redact=True):
     declared_env = os.getenv(env_name)
