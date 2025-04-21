@@ -85,4 +85,4 @@ class OPMLImportView(APIView):
             return Response({"error": "Invalid OPML file"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logger.error(f"OPML import failed: {str(e)}")
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": "An internal error has occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
