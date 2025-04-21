@@ -35,6 +35,13 @@ class Subscription(models.Model):
         cut_off = datetime.now() - timedelta(days=7)
         return self.episodes.objects.filter(pub_date__gte=cut_off)
 
+    def schedule(self, frequency, start_date):
+        episodes = Episode.objects.filter(subscription=self)
+
+        for episode in episodes:
+            episode.scheduled_date = start_date + timedelta(days=frequency)
+            episode.save()
+
     class Meta:
         ordering = ["-recent_episode_pub_date"]
 
@@ -47,6 +54,7 @@ class Episode(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     pub_date = models.DateTimeField()
+    scheduled_date = models.DateTimeField(null=True, blank=True)
     media_link = models.URLField(max_length=200, blank=True)
     audio_url = models.URLField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
