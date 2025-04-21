@@ -1,4 +1,4 @@
-import xml.etree.ElementTree as ET
+from defusedxml import ElementTree as DefusedET
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -6,6 +6,7 @@ from rest_framework.parsers import MultiPartParser
 from rss.models import RSSSubscription
 import logging
 import time
+import io
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +29,15 @@ class OPMLImportView(APIView):
         if "file" not in request.FILES:
             return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
         opml_file = request.FILES["file"]
-        if not opml_file.name.endswith(".opml"):
+        max_size = 5 * 1024 * 1024
+        if opml_file.size > max_size:
             return Response(
-                {"error": "File must be an OPML file"},
+                {"error": "OPML file exceeds 5MB size limit"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            tree = ET.parse(opml_file)
+            file_bytes = opml_file.read()
+            tree = DefusedET.parse(io.BytesIO(file_bytes))
             root = tree.getroot()
             feeds_results = []
             failed_feeds = []
@@ -81,8 +84,11 @@ class OPMLImportView(APIView):
                     "feeds": feeds_results,
                 }
             )
-        except ET.ParseError:
+        except DefusedET.ParseError:
             return Response({"error": "Invalid OPML file"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logger.error(f"OPML import failed: {str(e)}")
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"error": "An internal Error Occurred"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

@@ -15,12 +15,6 @@ try {
         exit 1
     }
 
-    # Verify file extension
-    if (-not ($filePath -match '\.opml$')) {
-        Write-Error "File must have .opml extension"
-        exit 1
-    }
-
     $form = @{
         file = Get-Item -Path $filePath
     }
