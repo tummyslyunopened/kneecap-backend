@@ -40,7 +40,7 @@ STATICFILES_DIRS = [
 ]
 MEDIA_ROOT = validate_env("MEDIA_ROOT", default=os.path.join(BASE_DIR, "media"), redact=False)
 DB_PATH = validate_env("DB_PATH", default=os.path.join(BASE_DIR, "db.sqlite3"), redact=False)
-SITE_URL = validate_env("SITE_URL", default="loclahost:8000", redact=False)
+SITE_URL = validate_env("SITE_URL", default="localhost:8000", redact=False)
 STATIC_URL = validate_env("STATIC_URL", default="/static/", redact=False)
 MEDIA_URL = validate_env("MEDIA_URL", default="/media/", redact=False)
 

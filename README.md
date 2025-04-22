@@ -61,5 +61,3 @@ Set-Location kneecap-backend
 .\entrypoint.ps1
 ```
 
-## License
-[MIT](LICENSE)
