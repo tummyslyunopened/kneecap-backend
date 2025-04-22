@@ -1,0 +1,7 @@
+services:
+  kneecap:
+    image: ghcr.io/tummyslyunopened/kneecap:canary
+    environment:
+      SECRET_KEY: $SECRET_KEY
+    ports:
+      - "80:8000"

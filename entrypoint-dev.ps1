@@ -1,3 +1,7 @@
+# Run migrations before starting runtime processes
+uv run manage.py makemigrations
+uv run manage.py migrate
+
 # Start each process and redirect output and error to separate log files
 Start-Process -FilePath "uv" -ArgumentList "run manage.py runserver 0.0.0.0:80" -RedirectStandardOutput "./logs/runserver-output.log" -RedirectStandardError "./logs/runserver-error.log" -NoNewWindow
 Start-Process -FilePath "uv" -ArgumentList "run manage.py rss-episode-downloader" -RedirectStandardOutput "./logs/rss-episode-downloader-output.log" -RedirectStandardError "./logs/rss-episode-downloader-error.log" -NoNewWindow
