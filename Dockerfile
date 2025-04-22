@@ -8,4 +8,5 @@ RUN uv sync --frozen
 FROM base AS runtime 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 COPY . .    
+RUN chmod +x ./entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
