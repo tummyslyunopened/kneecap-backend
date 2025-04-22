@@ -2,6 +2,8 @@
 
 Kneecap is an open-source Podcatcher and RSS mirror service built with Django. 
 
+![Animation](https://github.com/user-attachments/assets/6e83ae16-de5d-4f25-938f-65e991e0fe2e)
+
 ## Features
 - Dashboard for managing feeds and subscriptions
 - Web Audio player with advanced playback controls
@@ -58,9 +60,6 @@ git clone https://github.com/tummyslyunopened/kneecap-backend.git
 Set-Location kneecap-backend
 .\entrypoint.ps1
 ```
-
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
 [MIT](LICENSE)
