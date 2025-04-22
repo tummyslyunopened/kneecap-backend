@@ -1,0 +1,48 @@
+.subscription-form-fields {
+    flex: 1;
+}
+
+.subscription-form-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    margin-left: 12px;
+    margin-right: 12px;
+}
+
+.subscription-form-row .btn {
+    white-space: nowrap;
+    height: 100%;
+}
+
+.subscription-preview {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    max-height: 200px;
+    border-bottom: 1px solid #ccc;
+    background-color: #e5e0f8;
+    transition: background-color 0.3s ease;
+    padding: 10px;
+    max-height: 130px;
+    min-height: 130px;
+    position: relative;
+}
+
+.subscription-preview:hover {
+    background-color: #d1c9f0;
+}
+
+.subscription-preview .text-content {
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    min-width: 330px;
+    max-width: 330px;
+
+}
+
+.subscriptions-col {
+    max-width: 516px;
+}

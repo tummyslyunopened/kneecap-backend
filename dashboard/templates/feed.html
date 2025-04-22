@@ -5,9 +5,9 @@
   <div style="display: flex; flex-direction: row;">
     <div class="feed-col">
       <div class="sticky-header">
-        <button type="button" class="btn btn-secondary" onclick="hideAll()">Hide All</button>
-        <button type="button" class="btn btn-secondary" onclick="toggleChron()">Toggle Chron</button>
-        <button type="button" class="btn btn-secondary" onclick="refreshFeed()">Refresh</button>
+        <button type="button" class="btn btn-danger" onclick="hideAll()">Hide All</button>
+        <button type="button" class="btn btn-primary" onclick="toggleChron()">Toggle Chron</button>
+        <a href="/subscriptions" class="btn btn-secondary">Subscriptions</a>
       </div>
 
       <div id="episode-previews" class="episode-previews">
@@ -46,7 +46,7 @@
             <br />{{player_episode.title|slice:":40"}}
           </p>
           <div class="player-controls-group">
-            <a href="#" class="player-button skip-backward">
+            <div class="player-button skip-backward">
               <svg role="img" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
                 aria-labelledby="historyIconTitle" stroke="#9b51e0" stroke-width="1.8" stroke-linecap="square"
                 stroke-linejoin="miter" fill="none" color="#9b51e0">
@@ -56,15 +56,17 @@
                 <path
                   d="M12,21 C16.9705627,21 21,16.9705627 21,12 C21,7.02943725 16.9705627,3 12,3 C7.02943725,3 3,7.02943725 3,12 C3,11.975305 3,12.3086383 3,13" />
               </svg>
-            </a>
-            <a href="#" class="player-button play-button">
+            </div>
+            <div class="player-button play-button">
               <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M26.1333 38.4C25.0667 39.2 25.0667 40.8 26.1333 41.6L52.8 61.6C54.1185 62.5889 55 61.6481 55 60L55 20C55 18.3519 54.1185 17.4111 52.8 18.4L26.1333 38.4Z"
-                  fill="#9B51E0" stroke="#9B51E0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
+                <g transform="scale(-1,1) translate(-80,0)">
+                  <path
+                    d="M26.1333 38.4C25.0667 39.2 25.0667 40.8 26.1333 41.6L52.8 61.6C54.1185 62.5889 55 61.6481 55 60L55 20C55 18.3519 54.1185 17.4111 52.8 18.4L26.1333 38.4Z"
+                    fill="#9B51E0" stroke="#9B51E0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
+                </g>
               </svg>
-            </a>
-            <a href="#" class="player-button skip-forward">
+            </div>
+            <div class="player-button skip-forward">
               <svg role="img" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
                 aria-labelledby="historyIconTitle" stroke="#9b51e0" stroke-width="1.8" stroke-linecap="square"
                 stroke-linejoin="miter" fill="none" color="#9b51e0">
@@ -76,7 +78,7 @@
                     d="M12,21 C16.9705627,21 21,16.9705627 21,12 C21,7.02943725 16.9705627,3 12,3 C7.02943725,3 3,7.02943725 3,12 C3,11.975305 3,12.3086383 3,13" />
                 </g>
               </svg>
-            </a>
+            </div>
           </div>
         </div>
 
