@@ -1,39 +1,42 @@
 {% extends "base.html" %}
 {% block title %}Subscriptions{% endblock %}
 {% block content %}
-<div class="subscriptions">
-    <h0>Subscriptions</h1>
-        <div class="button-container">
-            <button class="refresh-button">Refresh</button>
-        </div>
-        <h1>Create a New RSS Subscription</h2>
-            <form method="POST">
-                {% csrf_token %}
-                {{ add_subscription_form.as_p }}
-                <button type="submit">Create Subscription</button>
-            </form>
+<div class="main-content">
+
+    <div style="display: flex; flex-direction: row;">
+        <div class="subscriptions-col">
+            <div class="sticky-header">
+
+                <form method="POST" class="subscription-form-row">
+                    <a href="/" class="btn btn-secondary" target="_self">Feed</a>
+                    {% csrf_token %}
+                    <div class="subscription-form-fields">
+                        {{ add_subscription_form }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
+            </div>
+
             {% for subscription in subscriptions %}
-            <div class="subscription-preview">
+            <div class="subscription-preview mb-1">
                 <div class="image-container">
                     <img src="{{subscription.image_url}}" alt="" width="74" />
                 </div>
                 <div class="text-content">
-                    <p>
-                        {{subscription.title}}
-                        <a href="{{subscription.rss_url}}">RSS</a>
-                        <a href="{{subscription.link}}">Source</a>
-                        <br />Last Scanned: {{subscription.updated_at}} <br />Recent
-                        Episode: {{subscription.recent_episode.title}} <br />Published:
-                        {{subscription.recent_episode.pub_date}}
-                    </p>
+                    {{subscription.title|slice:":40"}}
+                    <a href="{{subscription.rss_url}}">RSS</a>
+                    <a href="{{subscription.link}}">Source</a>
+                    <br />Last Scanned: {{subscription.updated_at}} <br />Recent
+                    Episode: {{subscription.recent_episode.title|slice:":40"}}...<br />Published:
+                    {{subscription.recent_episode.pub_date}}
                 </div>
-                <br />
-                <!-- Delete button for each subscription -->
                 <form action="{% url 'delete_rss_subscription' subscription.pk %}" method="POST">
                     {% csrf_token %}
-                    <button type="submit">Delete</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
                 </form>
             </div>
             {% endfor %}
+        </div>
+    </div>
 </div>
 {% endblock %}
