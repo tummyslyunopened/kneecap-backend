@@ -33,16 +33,17 @@ PROD = validate_env("PROD", default=False, bool=True)
 if not PROD:
     load_dotenv(dotenv_path=os.path.join(BASE_DIR, ".dev", ".env"), override=True)
 
+
 SECRET_KEY = validate_env("SECRET_KEY")
-ALLOWED_HOSTS = [validate_env("ALLOWED_HOST", default="localhost:8000", redact=False)]
-STATICFILES_DIRS = [
-    validate_env("STATIC_DIR", default=os.path.join(BASE_DIR, "static/"), redact=False)
-]
 MEDIA_ROOT = validate_env("MEDIA_ROOT", default=os.path.join(BASE_DIR, "media"), redact=False)
 DB_PATH = validate_env("DB_PATH", default=os.path.join(BASE_DIR, "db.sqlite3"), redact=False)
 SITE_URL = validate_env("SITE_URL", default="localhost:8000", redact=False)
-STATIC_URL = validate_env("STATIC_URL", default="/static/", redact=False)
-MEDIA_URL = validate_env("MEDIA_URL", default="/media/", redact=False)
+
+
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static/")] # validate_env("STATIC_DIR", default=os.path.join(BASE_DIR, "static/"), redact=False)
+ALLOWED_HOSTS = [SITE_URL] #[validate_env("ALLOWED_HOST", default="localhost:8000", redact=False)]
+STATIC_URL = "/static/" # validate_env("STATIC_URL", default="/static/", redact=False)
+MEDIA_URL = "/media/" # validate_env("MEDIA_URL", default="/media/", redact=False)
 
 INSTALLED_APPS = [
     "django.contrib.auth",
