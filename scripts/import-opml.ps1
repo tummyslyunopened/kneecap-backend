@@ -1,5 +1,5 @@
 try {
-    $uri = "http://127.0.0.1/api/opml/import/"
+    $uri = "http://kneecap.2wu.me/api/opml/import/"
     $filePath = $args[0]  # Get file path from command line argument
     
     # Check if file path was provided
