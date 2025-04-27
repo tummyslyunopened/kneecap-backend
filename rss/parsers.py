@@ -1,13 +1,13 @@
+from datetime import datetime, timedelta
+import logging
 import requests
 import feedparser
 from dateutil import parser
-from datetime import datetime, timedelta
-import logging
 
 logger = logging.getLogger(__name__)
 
 
-def parse_rss_entries(link, entry_url_field_name="url", days_cutoff=7):
+def parse_rss_entries(link, days_cutoff=7):
     try:
         feed_content = requests.get(url=link).content
         feed = feedparser.parse(feed_content)
@@ -17,9 +17,9 @@ def parse_rss_entries(link, entry_url_field_name="url", days_cutoff=7):
                 pub_date = parser.parse(entry.published, tzinfos=None)
                 date_cutoff = datetime.now().replace(tzinfo=None) - timedelta(days=days_cutoff)
                 if pub_date.replace(tzinfo=None) > date_cutoff.replace(tzinfo=None):
-                    duration = entry.get('itunes_duration', None)
+                    duration = entry.get("itunes_duration", None)
                     if duration:
-                        parts = duration.split(':')
+                        parts = duration.split(":")
                         duration_in_seconds = 0
                         if len(parts) == 3:
                             h, m, s = map(int, parts)
@@ -37,9 +37,7 @@ def parse_rss_entries(link, entry_url_field_name="url", days_cutoff=7):
                         "pub_date": pub_date.isoformat(),
                         "description": entry.description,
                         "duration": duration_in_seconds,
-                        entry_url_field_name: entry.enclosures[0].url
-                        if entry.enclosures
-                        else None,
+                        "media_link": entry.enclosures[0].url if entry.enclosures else None,
                     }
                     entries.append(entry_data)
             except Exception as e:

@@ -1,7 +1,7 @@
 import datetime
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from subscriptions.models import Episode  # Adjust import if model is elsewhere
+from subscriptions.models import Episode
 
 
 class Command(BaseCommand):

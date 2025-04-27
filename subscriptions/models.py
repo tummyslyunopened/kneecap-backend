@@ -3,22 +3,22 @@ from datetime import timedelta, datetime
 import uuid
 import logging
 from solo.models import SingletonModel
+from tools.models import TimeStampedModel
 
 logger = logging.getLogger(__name__)
 
 
-class Subscription(models.Model):
+class Subscription(TimeStampedModel):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     link = models.URLField(unique=True)
     title = models.CharField(max_length=500, default="", blank=True)
     description = models.TextField(default="", blank=True)
     image_link = models.URLField(blank=True)
     image_url = models.URLField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     rss_url = models.URLField(blank=True)
     recent_episode_pub_date = models.DateTimeField(blank=True, null=True)
     last_refresh = models.DateTimeField(blank=True, null=True)
+    refresh_interval = models.IntegerField(blank=True, null=True)
 
     @property
     def recent_episode(self):
@@ -35,18 +35,11 @@ class Subscription(models.Model):
         cut_off = datetime.now() - timedelta(days=7)
         return self.episodes.objects.filter(pub_date__gte=cut_off)
 
-    def schedule(self, frequency, start_date):
-        episodes = Episode.objects.filter(subscription=self)
-
-        for episode in episodes:
-            episode.scheduled_date = start_date + timedelta(days=frequency)
-            episode.save()
-
     class Meta:
         ordering = ["-recent_episode_pub_date"]
 
 
-class Episode(models.Model):
+class Episode(TimeStampedModel):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     subscription = models.ForeignKey(
         Subscription, related_name="episodes", on_delete=models.CASCADE
@@ -57,10 +50,7 @@ class Episode(models.Model):
     scheduled_date = models.DateTimeField(null=True, blank=True)
     media_link = models.URLField(max_length=200, blank=True)
     audio_url = models.URLField(max_length=500, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     hidden = models.BooleanField(default=False)
-    queued_for_download = models.BooleanField(default=False)
     duration = models.IntegerField(default=0)
     playback_time = models.IntegerField(default=0)
 

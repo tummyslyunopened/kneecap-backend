@@ -34,6 +34,7 @@ export const state = {
   currentTopEpisode: null,
   isPlaying: false,
   marqueeStyleSheet: null,
+  lastRecordedPlaybackTime: 0
 };
 
 import { debounce } from './utils.js';
@@ -56,9 +57,14 @@ window.setPlayerToTime = audioPlayer.setTime.bind(audioPlayer);
 
 const logPlaybackTime = async () => {
   const currentTime = audioPlayer.getCurrentTime();
+  if (typeof currentTime !== 'number' || currentTime === 0 || currentTime === state.lastRecordedPlaybackTime) {
+    return;
+  }
   try {
+    state.lastRecordedPlaybackTime = currentTime;
     await ApiService.post(CONSTANTS.API_URLS.SET_PLAYBACK_TIME, currentTime);
   } catch (error) {
+    alert(error)
   }
 };
 

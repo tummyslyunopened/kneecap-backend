@@ -40,10 +40,14 @@ DB_PATH = validate_env("DB_PATH", default=os.path.join(BASE_DIR, "db.sqlite3"), 
 SITE_URL = validate_env("SITE_URL", default="localhost:8000", redact=False)
 
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static/")] # validate_env("STATIC_DIR", default=os.path.join(BASE_DIR, "static/"), redact=False)
-ALLOWED_HOSTS = [SITE_URL] #[validate_env("ALLOWED_HOST", default="localhost:8000", redact=False)]
-STATIC_URL = "/static/" # validate_env("STATIC_URL", default="/static/", redact=False)
-MEDIA_URL = "/media/" # validate_env("MEDIA_URL", default="/media/", redact=False)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static/")
+]  # validate_env("STATIC_DIR", default=os.path.join(BASE_DIR, "static/"), redact=False)
+ALLOWED_HOSTS = [
+    SITE_URL
+]  # [validate_env("ALLOWED_HOST", default="localhost:8000", redact=False)]
+STATIC_URL = "/static/"  # validate_env("STATIC_URL", default="/static/", redact=False)
+MEDIA_URL = "/media/"  # validate_env("MEDIA_URL", default="/media/", redact=False)
 
 INSTALLED_APPS = [
     "django.contrib.auth",
@@ -52,6 +56,7 @@ INSTALLED_APPS = [
     "solo",
     "rest_framework",
     "tools",
+    "throttle",
     "subscriptions",
     "rss",
     "dashboard",

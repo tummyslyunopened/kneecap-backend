@@ -22,7 +22,7 @@ class OPMLImportView(APIView):
             return {"success": True, "created": True, "error": None}
         except Exception as e:
             error_msg = str(e)
-            logger.error(f"Failed to create feed {link}: {error_msg}")
+            # logger.error(f"Failed to create feed {link}: {error_msg}")
             return {"success": False, "created": False, "error": error_msg}
 
     def post(self, request):

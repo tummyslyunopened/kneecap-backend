@@ -5,7 +5,7 @@ from .models import RSSSubscription
 class RSSSubscriptionForm(forms.ModelForm):
     class Meta:
         model = RSSSubscription
-        fields = ["link"]  # Only the link field will be used to create a new RSSSubscription
+        fields = ["link"]
 
     link = forms.URLField(
         label="RSS Feed Link",

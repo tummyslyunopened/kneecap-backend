@@ -9,13 +9,12 @@ from dashboard.views import (
     feed,
     subscriptions,
     delete_rss_subscription,
-    add_to_rss_episode_download_queue,
     hide_all_episodes,
     hide_episode,
     play_episode,
     toggle_feed_chronological,
     refresh_subscriptions,
-    set_episode_playback_time
+    set_episode_playback_time,
 )
 
 urlpatterns = [
@@ -25,11 +24,6 @@ urlpatterns = [
         "delete-rss-subscription/<int:pk>/",
         delete_rss_subscription,
         name="delete_rss_subscription",
-    ),
-    path(
-        "add-to-rss-episode-download-queue/<int:pk>/",
-        add_to_rss_episode_download_queue,
-        name="add_to_rss_episode_download_queue",
     ),
     path(
         "hide-episode/<int:pk>/",
@@ -61,8 +55,6 @@ urlpatterns = [
         set_episode_playback_time,
         name="set_episode_playback_time",
     ),
-    # path("rss/", include(rss_urls)),
-    # path("api/", include(api_urls)),
     path("api/opml/", include(opml_urls)),
 ]
 if settings.DEBUG:

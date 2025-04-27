@@ -2,7 +2,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from subscriptions.models import Episode, Feed, Subscription
 from rss.forms import RSSSubscriptionForm
-from rss.models import RSSSubscription, RSSEpisodeDownloadQueue
+from rss.models import RSSSubscription
 from player.models import Player
 import logging
 from django.shortcuts import get_object_or_404
@@ -14,18 +14,6 @@ def delete_rss_subscription(request, pk):
     rss_subscription = get_object_or_404(RSSSubscription, pk=pk)
     if request.method == "POST":
         rss_subscription.delete()
-    return HttpResponse("<script>history.back();</script>")
-
-
-def add_to_rss_episode_download_queue(request, pk):
-    if request.method == "POST":
-        episode = get_object_or_404(Episode, pk=pk)
-        try:
-            RSSEpisodeDownloadQueue.objects.create(episode=episode)
-            episode.queued_for_download = True
-            episode.save()
-        except Exception as e:
-            logger.warn(f"Request to view failed to add episode{e, request, episode}")
     return HttpResponse("<script>history.back();</script>")
 
 
@@ -47,9 +35,10 @@ def play_episode(request, pk):
         player.save()
     return HttpResponse("<script>history.back();</script>")
 
+
 def set_episode_playback_time(request):
     if request.method == "POST":
-        playback_time = request.POST['data']
+        playback_time = request.POST["data"]
         player = Player.get_solo()
         player.episode.playback_time = float(playback_time)
         player.episode.save()
