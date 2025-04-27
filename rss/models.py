@@ -3,9 +3,7 @@ from subscriptions.models import Subscription, Episode
 from tools.media import download_media_requests
 from rss.parsers import parse_rss_feed_info, parse_rss_entries
 import logging
-
 from throttle.decorators import model_instance_throttle
-from icecream import ic
 
 
 logger = logging.getLogger(__name__)
@@ -13,20 +11,20 @@ logger = logging.getLogger(__name__)
 
 class RSSSubscription(Subscription):
     def save(self, *args, **kwargs):
-        ic(getattr(self, "title"))
         if self.title == "":
             self.refresh()
-            pass
         super(RSSSubscription, self).save(*args, **kwargs)
 
-    # @global_throttle("rss_subscriptions_refresh", 1, 1)
-    @model_instance_throttle("last_refresh", "refresh_interval", 1, 1, wait_on_throttled=True)
     def refresh(self):
         self.title, self.description, self.image_link = parse_rss_feed_info(self.link)
         self.download_image()
         self.download_rss()
 
-    # @global_throttle("image_download", 1, 1)
+    @model_instance_throttle("last_refresh", "refresh_interval", 1, 1)
+    def throttled_refresh(self):
+        print("throttle refresh")
+        self.refresh()
+
     def download_image(self):
         if not self.image_link:
             logger.warning(f"No external image link for feed: {self.title}")
@@ -37,7 +35,6 @@ class RSSSubscription(Subscription):
         self.image_url = self.image_url.replace(settings.SITE_URL.rstrip("/"), "")
         return (success, self.image_url)
 
-    # @global_throttle("rss_download", 1, 1)
     def download_rss(self):
         if not self.link:
             logger.warning(f"No external rss link for feed: {self.title}")
@@ -53,9 +50,13 @@ class RSSSubscription(Subscription):
         from django.conf import settings
 
         if not self.rss_url:
-            logger.warn(f"no rss mirror found for subscription {self.title}")
+            logger.warning(f"no rss mirror found for subscription {self.title}")
             return None
-        rss_file_path = os.path.join(settings.MEDIA_ROOT, self.rss_url)
+        rss_url_rel = self.rss_url.lstrip("/\\")
+        if rss_url_rel.lower().startswith("media/"):
+            rss_url_rel = rss_url_rel[6:]
+        media_root = str(settings.MEDIA_ROOT)
+        rss_file_path = os.path.join(media_root, rss_url_rel)
         try:
             with open(rss_file_path, "r", encoding="utf-8") as f:
                 return f.read()
@@ -63,7 +64,6 @@ class RSSSubscription(Subscription):
             logger.warn(f"Failed to read RSS file for subscription {self.title}: {e}")
             return None
 
-    # @global_throttle("populate_recent_episodes", 1, 1)
     def populate_recent_episodes(self):
         rss_content = self.rss_file_content()
         if not rss_content:
@@ -78,7 +78,6 @@ class RSSSubscription(Subscription):
                 pass
         return parse_success
 
-    # @global_throttle("download_episode_audio", 1, 1)
     def download_episode_audio(episode: Episode):
         if not episode.media_link:
             logger.warning(f"No media URL for episode: {episode.title}")

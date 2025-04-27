@@ -8,7 +8,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         while True:
             for subscription in RSSSubscription.objects.all():
-                subscription.refresh()
+                subscription.throttled_refresh()
                 subscription.populate_recent_episodes()
                 for episode in subscription.episodes.filter(audio_url=""):
                     RSSSubscription.download_episode_audio(episode)
