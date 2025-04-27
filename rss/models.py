@@ -48,14 +48,27 @@ class RSSSubscription(Subscription):
         self.rss_url = self.rss_url.replace(settings.SITE_URL.rstrip("/"), "")
         return (success, self.rss_url)
 
-    # @global_throttle("populate_recent_episodes", 1, 1)
-    def populate_recent_episodes(self):
+    def rss_file_content(self):
+        import os
+        from django.conf import settings
+
         if not self.rss_url:
             logger.warn(f"no rss mirror found for subscription {self.title}")
+            return None
+        rss_file_path = os.path.join(settings.MEDIA_ROOT, self.rss_url)
+        try:
+            with open(rss_file_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except Exception as e:
+            logger.warn(f"Failed to read RSS file for subscription {self.title}: {e}")
+            return None
+
+    # @global_throttle("populate_recent_episodes", 1, 1)
+    def populate_recent_episodes(self):
+        rss_content = self.rss_file_content()
+        if not rss_content:
             return False
-        parse_success, entries = parse_rss_entries(
-            "http://" + settings.SITE_URL.rstrip("/") + self.rss_url, 7
-        )
+        parse_success, entries = parse_rss_entries(rss_content, 7)
         for entry in entries:
             try:
                 episode = Episode.objects.create(subscription=self, **entry)
