@@ -6,7 +6,7 @@ export const CONSTANTS = {
   PLAYBACK_LOG_INTERVAL: 3000,
   MARQUEE_CHECK_INTERVAL: 100,
   SCROLL_OFFSET: 75,
-  SKIP_TIME: 15, 
+  SKIP_TIME: 15,
   SCROLL_EPISODE_OFFSET: 60,
 
   API_URLS: {
@@ -20,7 +20,7 @@ export const CONSTANTS = {
   },
 
   KEYBOARD_SHORTCUTS: {
-    PLAY_PAUSE: ' ',  
+    PLAY_PAUSE: ' ',
     SKIP_FORWARD: 'ArrowRight',
     SKIP_BACKWARD: 'ArrowLeft',
     VOLUME_UP: 'ArrowUp',
@@ -60,12 +60,8 @@ const logPlaybackTime = async () => {
   if (typeof currentTime !== 'number' || currentTime === 0 || currentTime === state.lastRecordedPlaybackTime) {
     return;
   }
-  try {
-    state.lastRecordedPlaybackTime = currentTime;
-    await ApiService.post(CONSTANTS.API_URLS.SET_PLAYBACK_TIME, currentTime);
-  } catch (error) {
-    alert(error)
-  }
+  state.lastRecordedPlaybackTime = currentTime;
+  await ApiService.post(CONSTANTS.API_URLS.SET_PLAYBACK_TIME, currentTime);
 };
 
 const handleScroll = debounce(() => {

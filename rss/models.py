@@ -4,6 +4,7 @@ from tools.media import download_media_requests
 from rss.parsers import parse_rss_feed_info, parse_rss_entries
 import logging
 from throttle.decorators import model_instance_throttle
+import os
 
 
 logger = logging.getLogger(__name__)
@@ -46,9 +47,6 @@ class RSSSubscription(Subscription):
         return (success, self.rss_url)
 
     def rss_file_content(self):
-        import os
-        from django.conf import settings
-
         if not self.rss_url:
             logger.warning(f"no rss mirror found for subscription {self.title}")
             return None

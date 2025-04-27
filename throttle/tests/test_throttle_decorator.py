@@ -37,7 +37,7 @@ class TempThrottleModel(models.Model):
         return "patient"
 
 
-class TestThrottleDecorators(TransactionTestCase):
+class TempThrottleModelTestBase(TransactionTestCase):
     reset_sequences = True
 
     @classmethod
@@ -52,6 +52,8 @@ class TestThrottleDecorators(TransactionTestCase):
             schema_editor.delete_model(TempThrottleModel)
         super().tearDownClass()
 
+
+class TestThrottleDecorators(TempThrottleModelTestBase):
     def setUp(self):
         self.obj = TempThrottleModel.objects.create()
 
@@ -147,3 +149,47 @@ class TestThrottleDecorators(TransactionTestCase):
         elapsed = int(round(time.time() - start))
         self.assertGreaterEqual(elapsed, 5)
         self.assertLessEqual(elapsed, 6)
+
+    def test_global_throttle_wait_on_throttled_sleeps(self):
+        self.obj.global_throttled_method()
+        gt = GlobalThrottle.objects.get(key="test_global_key")
+        gt.last_called = timezone.now()
+        gt.interval_seconds = 2
+        gt.save(update_fields=["last_called", "interval_seconds"])
+        decorated = global_throttle("test_global_key", 2, 2, wait_on_throttled=True)(
+            lambda self: "ran_after_wait"
+        )
+        start = time.time()
+        result = decorated(self.obj)
+        elapsed = time.time() - start
+        self.assertEqual(result, "ran_after_wait")
+        self.assertGreaterEqual(elapsed, 2)
+        self.assertLess(elapsed, 3)
+
+    def test_model_instance_throttle_wait_on_throttled_sleeps(self):
+        self.obj.instance_throttled_method()
+        self.obj.last_called_instance = timezone.now()
+        self.obj.interval_instance = 2
+        self.obj.save(update_fields=["last_called_instance", "interval_instance"])
+        decorated = model_instance_throttle(
+            "last_called_instance", "interval_instance", 2, 2, wait_on_throttled=True
+        )(lambda self: "ran_after_wait")
+        start = time.time()
+        result = decorated(self.obj)
+        elapsed = time.time() - start
+        self.assertEqual(result, "ran_after_wait")
+        self.assertGreaterEqual(elapsed, 2)
+        self.assertLess(elapsed, 3)
+
+    def test_model_instance_throttle_sets_interval_if_none(self):
+        self.obj.interval_instance = None
+        self.obj.save(update_fields=["interval_instance"])
+        self.obj.last_called_instance = None
+        self.obj.save(update_fields=["last_called_instance"])
+        decorated = model_instance_throttle("last_called_instance", "interval_instance", 7, 3)(
+            lambda self: "set_interval"
+        )
+        result = decorated(self.obj)
+        self.assertEqual(result, "set_interval")
+        self.obj.refresh_from_db()
+        self.assertEqual(self.obj.interval_instance, 7)
