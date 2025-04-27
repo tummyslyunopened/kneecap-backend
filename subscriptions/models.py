@@ -33,7 +33,7 @@ class Subscription(TimeStampedModel):
     @property
     def recent_episode_by_day_cuttoff(self):
         cut_off = datetime.now() - timedelta(days=7)
-        return self.episodes.objects.filter(pub_date__gte=cut_off)
+        return self.episodes.filter(pub_date__gte=cut_off)
 
     class Meta:
         ordering = ["-recent_episode_pub_date"]
