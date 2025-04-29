@@ -26,7 +26,7 @@
                     {{subscription.title|slice:":40"}}
                     <a href="{{subscription.rss_url}}">RSS</a>
                     <a href="{{subscription.link}}">Source</a>
-                    <br />Last Scanned: {{subscription.updated_at}} <br />Recent
+                    <br />Last Scanned: {{subscription.last_refresh}} <br />Recent
                     Episode: {{subscription.recent_episode.title|slice:":40"}}...<br />Published:
                     {{subscription.recent_episode.pub_date}}
                 </div>
