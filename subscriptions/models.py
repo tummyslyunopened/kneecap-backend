@@ -19,6 +19,8 @@ class Subscription(TimeStampedModel):
     recent_episode_pub_date = models.DateTimeField(blank=True, null=True)
     last_refresh = models.DateTimeField(blank=True, null=True)
     refresh_interval = models.IntegerField(blank=True, null=True)
+    last_media_download = models.DateTimeField(blank=True, null=True)
+    media_download_interval = models.IntegerField(blank=True, null=True)
 
     @property
     def recent_episode(self):
