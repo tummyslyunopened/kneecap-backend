@@ -43,23 +43,34 @@ class OPMLImportView(APIView):
             failed_feeds = []
             success_count = 0
             failure_count = 0
-            for outline in root.findall(".//outline[@xmlUrl]"):
+            outlines = root.findall(".//outline[@xmlUrl]")
+            total = len(outlines)
+            logger.info(f"[OPML Import] Starting import of {total} feeds...")
+            for idx, outline in enumerate(outlines, 1):
+                logger.info(f"[OPML Import] Processing feed {idx}/{total}: {outline.get('xmlUrl')}")
                 feed_result = {
                     "link": outline.get("xmlUrl"),
                     "title": outline.get("title", ""),
                     "status": "success",
                     "error": None,
                 }
-                result = self.try_create_feed(feed_result["link"])
+                result = self.try_create_feed(outline.get("xmlUrl"))
                 if result["success"]:
-                    feed_result["created"] = result["created"]
-                    success_count += 1
+                    if result["created"]:
+                        success_count += 1
+                        logger.info(f"[OPML Import] Successfully created: {outline.get('xmlUrl')}")
+                    else:
+                        logger.info(f"[OPML Import] Feed already exists: {outline.get('xmlUrl')}")
                 else:
-                    feed_result["status"] = "failed"
-                    feed_result["error"] = result["error"]
                     failure_count += 1
+                    feed_result["status"] = "error"
+                    feed_result["error"] = result["error"]
                     failed_feeds.append(feed_result)
+                    logger.error(f"[OPML Import] Failed to create: {outline.get('xmlUrl')} | Error: {result['error']}")
                 feeds_results.append(feed_result)
+                if idx % 10 == 0 or idx == total:
+                    logger.info(f"[OPML Import] Progress: {idx}/{total} feeds processed...")
+            logger.info(f"[OPML Import] Import complete: {success_count} succeeded, {failure_count} failed.")
             if failed_feeds:
                 logger.info(f"Retrying {len(failed_feeds)} failed feeds...")
                 for failed_feed in failed_feeds:
