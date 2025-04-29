@@ -28,7 +28,7 @@ def get_media_paths(link, uuid, media_path="unsorted", default_file_ext=""):
         return ("", "")
 
 
-@global_throttle("download_media_requests", 10, 1, wait_on_throttled=True)
+@global_throttle("download_media_requests", 1, 1, wait_on_throttled=True)
 def download_media_requests(link, uuid, media_path="unsorted", default_file_ext=""):
     full_path, url_path = get_media_paths(link, str(uuid), media_path, default_file_ext)
     try:
