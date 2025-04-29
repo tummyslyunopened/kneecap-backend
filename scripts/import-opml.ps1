@@ -1,11 +1,21 @@
 try {
-    $uri = "http://localhost/api/opml/import/"
+    # Accept URI and file path from arguments
+    $target = $args[1]
     $filePath = $args[0]  # Get file path from command line argument
-    
-    # Check if file path was provided
-    if (-not $filePath) {
-        Write-Error "Please provide the path to your OPML file as an argument."
-        Write-Host "Usage: .\import-opml.ps1 example.opml"
+
+    # Map target argument to URI
+    switch ($target) {
+        "local"   { $uri = "http://localhost/api/opml/import/" }
+        "kneecap" { $uri = "http://kneecap.2wu.me/api/opml/import/" }
+        default   { $uri = $target }
+    }
+
+    # Check if file path and target were provided
+    if (-not $filePath -or -not $target) {
+        Write-Error "Please provide the path to your OPML file and the target (local|kneecap|custom URI) as arguments."
+        Write-Host "Usage: .\import-opml.ps1 example.opml local"
+        Write-Host "   or: .\import-opml.ps1 example.opml kneecap"
+        Write-Host "   or: .\import-opml.ps1 example.opml http://custom/api/opml/import/"
         exit 1
     }
 
