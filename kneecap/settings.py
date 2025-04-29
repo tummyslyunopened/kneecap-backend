@@ -39,6 +39,11 @@ MEDIA_ROOT = validate_env("MEDIA_ROOT", default=os.path.join(BASE_DIR, "media"),
 DB_PATH = validate_env("DB_PATH", default=os.path.join(BASE_DIR, "db.sqlite3"), redact=False)
 SITE_URL = validate_env("SITE_URL", default="localhost:8000", redact=False)
 
+# Use lemon24/reader for feed fetching/parsing if set to True
+USE_READER_BACKEND = validate_env("USE_READER_BACKEND", default=False, bool=True)
+
+# Path for lemon24/reader database
+READER_DB_PATH = validate_env("READER_DB_PATH", default=os.path.join(BASE_DIR, "reader.db"), redact=False)
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static/")
