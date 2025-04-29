@@ -1,5 +1,4 @@
 from .models import GlobalThrottle
-from django.db import transaction
 from datetime import timedelta
 from django.utils import timezone
 import logging
@@ -19,31 +18,30 @@ def global_throttle(
         def wrapper(self, *args, **kwargs):
             _wait_on_throttled = True
             while _wait_on_throttled:
-                with transaction.atomic():
-                    throttle, _ = GlobalThrottle.objects.select_for_update().get_or_create(
-                        key=throttle_key,
-                        defaults={"interval_seconds": default_interval, "last_called": None},
-                    )
-                    interval = throttle.interval_seconds
-                    interval = max(interval, min_allowed_interval)
-                    now = timezone.now()
-                    if throttle.last_called is None or now - throttle.last_called >= timedelta(
-                        seconds=interval
-                    ):
-                        throttle.last_called = now
-                        throttle.save(update_fields=["last_called"])
-                        return func(self, *args, **kwargs)
-                    else:
-                        if not wait_on_throttled:
-                            if callable(return_on_throttled):
-                                return return_on_throttled(self, *args, **kwargs)
-                            return return_on_throttled
-                        _wait_on_throttled = wait_on_throttled
-                        wait_seconds = (
-                            throttle.last_called + timedelta(seconds=interval) - now
-                        ).total_seconds()
-                        if wait_seconds > 0:
-                            time.sleep(wait_seconds)
+                throttle, _ = GlobalThrottle.objects.get(
+                    key=throttle_key,
+                    defaults={"interval_seconds": default_interval, "last_called": None},
+                )
+                interval = throttle.interval_seconds
+                interval = max(interval, min_allowed_interval)
+                now = timezone.now()
+                if throttle.last_called is None or now - throttle.last_called >= timedelta(
+                    seconds=interval
+                ):
+                    throttle.last_called = now
+                    throttle.save(update_fields=["last_called"])
+                    return func(self, *args, **kwargs)
+                else:
+                    if not wait_on_throttled:
+                        if callable(return_on_throttled):
+                            return return_on_throttled(self, *args, **kwargs)
+                        return return_on_throttled
+                    _wait_on_throttled = wait_on_throttled
+                    wait_seconds = (
+                        throttle.last_called + timedelta(seconds=interval) - now
+                    ).total_seconds()
+                    if wait_seconds > 0:
+                        time.sleep(wait_seconds)
 
         return wrapper
 
@@ -67,31 +65,31 @@ def model_instance_throttle(
         def wrapper(self, *args, **kwargs):
             _wait_on_throttled = True
             while _wait_on_throttled:
-                with transaction.atomic():
-                    instance = self.__class__.objects.select_for_update().get(pk=self.pk)
-                    interval = getattr(instance, interval_field, None)
-                    if interval is None:
-                        interval = default_interval
-                        setattr(instance, interval_field, interval)
-                    instance.save(update_fields=[interval_field])
-                    interval = max(interval, min_allowed_interval)
-                    last_called = getattr(instance, timestamp_field)
-                    now = timezone.now()
-                    if last_called is None or now - last_called >= timedelta(seconds=interval):
-                        setattr(instance, timestamp_field, now)
-                        instance.save(update_fields=[timestamp_field])
-                        return func(self, *args, **kwargs)
-                    else:
-                        if not wait_on_throttled:
-                            if callable(return_on_throttled):
-                                return return_on_throttled(self, *args, **kwargs)
-                            return return_on_throttled
-                        _wait_on_throttled = wait_on_throttled
-                        wait_seconds = (
-                            last_called + timedelta(seconds=interval) - now
-                        ).total_seconds()
-                        if wait_seconds > 0:
-                            time.sleep(wait_seconds)
+                instance = self.__class__.objects.get(pk=self.pk)
+                interval = getattr(instance, interval_field, None)
+                if interval is None:
+                    interval = default_interval
+                    setattr(instance, interval_field, interval)
+                instance.save(update_fields=[interval_field])
+                interval = max(interval, min_allowed_interval)
+                last_called = getattr(instance, timestamp_field)
+                now = timezone.now()
+                if last_called is None or now - last_called >= timedelta(seconds=interval):
+                    setattr(instance, timestamp_field, now)
+                    instance.save(update_fields=[timestamp_field])
+                    return func(self, *args, **kwargs)
+                else:
+                    if not wait_on_throttled:
+                        logger.warning("THROTTLED - Method Not Callable Yet")
+                        if callable(return_on_throttled):
+                            return return_on_throttled(self, *args, **kwargs)
+                        return return_on_throttled
+                    _wait_on_throttled = wait_on_throttled
+                    wait_seconds = (
+                        last_called + timedelta(seconds=interval) - now
+                    ).total_seconds()
+                    if wait_seconds > 0:
+                        time.sleep(wait_seconds)
 
         return wrapper
 
