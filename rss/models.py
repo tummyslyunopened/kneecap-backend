@@ -1,9 +1,16 @@
 from django.conf import settings
+from django.utils import timezone
 from subscriptions.models import Subscription, Episode
-from tools.media import download_media_requests
-from rss.parsers import parse_rss_feed_info, parse_rss_entries
-import logging
 from throttle.decorators import model_instance_throttle
+from tools.constants import HOUR_SECONDS
+from tools.media import download_media_requests
+from rss.parsers import (
+    parse_rss_feed_info,
+    parse_rss_entries,
+    parse_rss_feed_info_reader,
+    parse_rss_entries_reader,
+)
+import logging
 import os
 
 
@@ -14,16 +21,25 @@ class RSSSubscription(Subscription):
     def save(self, *args, **kwargs):
         if self.title == "":
             self.refresh()
+            self.populate_recent_episodes()
+            self.download_image()
         super(RSSSubscription, self).save(*args, **kwargs)
 
     def refresh(self):
-        self.title, self.description, self.image_link = parse_rss_feed_info(self.link)
-        self.download_image()
+        print(self.image_link)
+        if getattr(settings, "USE_READER_BACKEND", True) and self.image_link != "":
+            self.title, self.description = parse_rss_feed_info_reader(self.link)
+        else:
+            self.title, self.description, self.image_link = parse_rss_feed_info(self.link)
         self.download_rss()
+        self.populate_recent_episodes()
+        self.last_refresh = timezone.now()
+        self.save()
 
-    @model_instance_throttle("last_refresh", "refresh_interval", 1, 1)
+    @model_instance_throttle(
+        "last_refresh", "refresh_interval", 4 * HOUR_SECONDS, 4 * HOUR_SECONDS
+    )
     def throttled_refresh(self):
-        print("throttle refresh")
         self.refresh()
 
     def download_image(self):
@@ -34,7 +50,7 @@ class RSSSubscription(Subscription):
             self.image_link, str(self.uuid), "images", default_file_ext=".jpg"
         )
         self.image_url = self.image_url.replace(settings.SITE_URL.rstrip("/"), "")
-        return (success, self.image_url)
+        return (success, f"Downloaded and mirrored at: ${self.image_url}")
 
     def download_rss(self):
         if not self.link:
@@ -63,10 +79,13 @@ class RSSSubscription(Subscription):
             return None
 
     def populate_recent_episodes(self):
-        rss_content = self.rss_file_content()
-        if not rss_content:
-            return False
-        parse_success, entries = parse_rss_entries(rss_content, 7)
+        if getattr(settings, "USE_READER_BACKEND", False):
+            parse_success, entries = parse_rss_entries_reader(self.rss_url, 7)
+        else:
+            rss_content = self.rss_file_content()
+            if not rss_content:
+                return False
+            parse_success, entries = parse_rss_entries(rss_content, 7)
         for entry in entries:
             try:
                 episode = Episode.objects.create(subscription=self, **entry)
@@ -76,7 +95,32 @@ class RSSSubscription(Subscription):
                 pass
         return parse_success
 
-    def download_episode_audio(episode: Episode):
+    def refresh_reader(self):
+        """
+        Alternative refresh using lemon24/reader for fetching/parsing feed info.
+        """
+        self.title, self.description, self.image_link = parse_rss_feed_info_reader(self.link)
+        self.download_image()
+        self.download_rss()
+
+    def populate_recent_episodes_reader(self):
+        """
+        Alternative episode population using lemon24/reader for fetching/parsing entries.
+        """
+        parse_success, entries = parse_rss_entries_reader(self.link, 7)
+        for entry in entries:
+            try:
+                episode = Episode.objects.create(subscription=self, **entry)
+                episode.save()
+            except Exception as e:
+                logger.info(f"Failed to insert episode: {e}")
+                pass
+        return parse_success
+
+    @model_instance_throttle(
+        "last_media_download", "media_download_interval", HOUR_SECONDS, HOUR_SECONDS
+    )
+    def download_episode_audio(self, episode: Episode):
         if not episode.media_link:
             logger.warning(f"No media URL for episode: {episode.title}")
             return False
