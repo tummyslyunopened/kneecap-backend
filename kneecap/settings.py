@@ -43,7 +43,9 @@ SITE_URL = validate_env("SITE_URL", default="localhost:8000", redact=False)
 USE_READER_BACKEND = validate_env("USE_READER_BACKEND", default=False, bool=True)
 
 # Path for lemon24/reader database
-READER_DB_PATH = validate_env("READER_DB_PATH", default=os.path.join(BASE_DIR, "reader.db"), redact=False)
+READER_DB_PATH = validate_env(
+    "READER_DB_PATH", default=os.path.join(BASE_DIR, "reader.db"), redact=False
+)
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static/")
@@ -103,22 +105,22 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Add or update the LOGGING configuration to show INFO-level logs for the opml app
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
         },
     },
-    'loggers': {
-        'opml': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
+    "loggers": {
+        "opml": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
         },
     },
-    'root': {
-        'handlers': ['console'],
-        'level': 'WARNING',
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
     },
 }
