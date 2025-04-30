@@ -19,10 +19,12 @@ logger = logging.getLogger(__name__)
 
 class RSSSubscription(Subscription):
     def save(self, *args, **kwargs):
-        if self.title == "":
-            self.refresh()
+        if self.id is None:
+            self.rss_url = self.download_rss()[1]
+            self.title, self.description, self.image_link = parse_rss_feed_info(self.link)
+            self.image_url = self.download_image()[1]
             self.populate_recent_episodes()
-            self.download_image()
+            logger.info("\n".join(f"{k} = {v}" for k, v in self.__dict__.items()))
         super(RSSSubscription, self).save(*args, **kwargs)
 
     def refresh(self):
@@ -31,7 +33,7 @@ class RSSSubscription(Subscription):
             self.title, self.description = parse_rss_feed_info_reader(self.link)
         else:
             self.title, self.description, self.image_link = parse_rss_feed_info(self.link)
-        self.download_rss()
+        _, self.rss_url = self.download_rss()
         self.populate_recent_episodes()
         self.last_refresh = timezone.now()
         self.save()
@@ -50,7 +52,7 @@ class RSSSubscription(Subscription):
             self.image_link, str(self.uuid), "images", default_file_ext=".jpg"
         )
         self.image_url = self.image_url.replace(settings.SITE_URL.rstrip("/"), "")
-        return (success, f"Downloaded and mirrored at: ${self.image_url}")
+        return (success, self.image_url)
 
     def download_rss(self):
         if not self.link:
