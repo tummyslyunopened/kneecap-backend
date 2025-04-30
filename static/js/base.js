@@ -12,11 +12,11 @@ export const CONSTANTS = {
   API_URLS: {
     SET_PLAYBACK_TIME: '/set-episode-playback-time',
     HIDE_EPISODE: '/hide-episode',
+    DELETE_SUBSCRIPTION: '/delete-subscription',
     DOWNLOAD_EPISODE: '/download-episode',
     PLAY_EPISODE: '/play-episode',
     TOGGLE_CHRONOLOGICAL: '/toggle-feed-chronological',
     HIDE_ALL_EPISODES: '/hide-all-episodes',
-    REFRESH_SUBSCRIPTIONS: '/refresh-subscriptions',
   },
 
   KEYBOARD_SHORTCUTS: {
@@ -42,6 +42,7 @@ import { findTopEpisodeElement } from './uiMeasure.js';
 import ApiService from './apiService.js';
 import AudioPlayer from './audioPlayer.js';
 import EpisodeManager from './episodeManager.js';
+import SubscriptionManager from './subscriptionManager.js';
 import { scrollToCurrentTopEpisode } from './uxSugar.js';
 import { addMarqueeEffect, removeMarqueeEffect } from './marquee.js';
 
@@ -50,10 +51,16 @@ window.hideEpisode = episodeManager.hideEpisode.bind(episodeManager);
 window.downloadEpisode = episodeManager.downloadEpisode.bind(episodeManager);
 window.playEpisode = episodeManager.playEpisode.bind(episodeManager);
 window.hideAll = episodeManager.hideAll.bind(episodeManager);
-window.refreshFeed = episodeManager.refreshFeed.bind(episodeManager);
 window.toggleChron = episodeManager.toggleChron.bind(episodeManager);
+
 const audioPlayer = new AudioPlayer();
 window.setPlayerToTime = audioPlayer.setTime.bind(audioPlayer);
+
+const subscriptionManager = new SubscriptionManager();
+window.deleteSubscription = subscriptionManager.deleteSubscription.bind(subscriptionManager);
+
+
+
 
 const logPlaybackTime = async () => {
   const currentTime = audioPlayer.getCurrentTime();

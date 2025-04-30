@@ -2,7 +2,6 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from subscriptions.models import Episode, Feed, Subscription
 from rss.forms import RSSSubscriptionForm
-from rss.models import RSSSubscription
 from player.models import Player
 import logging
 from django.shortcuts import get_object_or_404
@@ -10,10 +9,10 @@ from django.shortcuts import get_object_or_404
 logger = logging.getLogger(__name__)
 
 
-def delete_rss_subscription(request, pk):
-    rss_subscription = get_object_or_404(RSSSubscription, pk=pk)
+def delete_subscription(request, pk):
+    subscription = get_object_or_404(Subscription, pk=pk)
     if request.method == "POST":
-        rss_subscription.delete()
+        subscription.delete()
     return HttpResponse("<script>history.back();</script>")
 
 
@@ -60,12 +59,6 @@ def hide_all_episodes(request):
         for episode in feed.episodes:
             episode.hidden = True
             episode.save()
-    return HttpResponse("<script>history.back();</script>")
-
-
-def refresh_subscriptions(request):
-    if request.method == "POST":
-        RSSSubscription.refresh_all()
     return HttpResponse("<script>history.back();</script>")
 
 

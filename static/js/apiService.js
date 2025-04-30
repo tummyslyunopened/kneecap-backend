@@ -23,8 +23,8 @@ class ApiService {
     }
   }
 
-  static async episodeMethod(url, episodeId) {
-    const fullUrl = `${url}/${episodeId}/`;
+  static async idMethod(url, id) {
+    const fullUrl = `${url}/${id}/`;
     try {
       const formData = new FormData();
       formData.append('csrfmiddlewaretoken', window.CSRF_TOKEN);

@@ -8,12 +8,11 @@ from django.conf.urls.static import static
 from dashboard.views import (
     feed,
     subscriptions,
-    delete_rss_subscription,
+    delete_subscription,
     hide_all_episodes,
     hide_episode,
     play_episode,
     toggle_feed_chronological,
-    refresh_subscriptions,
     set_episode_playback_time,
 )
 
@@ -21,9 +20,9 @@ urlpatterns = [
     path("", feed, name="feed"),
     path("subscriptions", subscriptions, name="subscriptions"),
     path(
-        "delete-rss-subscription/<int:pk>/",
-        delete_rss_subscription,
-        name="delete_rss_subscription",
+        "delete-subscription/<int:pk>/",
+        delete_subscription,
+        name="delete_subscription",
     ),
     path(
         "hide-episode/<int:pk>/",
@@ -44,11 +43,6 @@ urlpatterns = [
         "hide-all-episodes",
         hide_all_episodes,
         name="hide_all_episodes",
-    ),
-    path(
-        "refresh-subscriptions",
-        refresh_subscriptions,
-        name="refresh_subscriptions",
     ),
     path(
         "set-episode-playback-time",

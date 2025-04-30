@@ -18,7 +18,7 @@
             </div>
 
             {% for subscription in subscriptions %}
-            <div class="subscription-preview mb-1">
+            <div class="subscription-preview mb-1" id="{{subscription.pk}}">
                 <div class="image-container">
                     <img src="{{subscription.image_url}}" alt="" width="74" />
                 </div>
@@ -30,10 +30,7 @@
                     Episode: {{subscription.recent_episode.title|slice:":40"}}...<br />Published:
                     {{subscription.recent_episode.pub_date}}
                 </div>
-                <form action="{% url 'delete_rss_subscription' subscription.pk %}" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
+                <button type="button" class="btn btn-danger" onclick="deleteSubscription({{subscription.pk}})">Delete</button>
             </div>
             {% endfor %}
         </div>

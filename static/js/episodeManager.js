@@ -5,7 +5,7 @@ import { safeGetElement } from './utils.js';
 class EpisodeManager {
   async hideEpisode(episodeId) {
     try {
-      await ApiService.episodeMethod(CONSTANTS.API_URLS.HIDE_EPISODE, episodeId);
+      await ApiService.idMethod(CONSTANTS.API_URLS.HIDE_EPISODE, episodeId);
       const element = safeGetElement(episodeId);
       if (element) {
         element.remove();
@@ -17,7 +17,7 @@ class EpisodeManager {
 
   async downloadEpisode(episodeId) {
     try {
-      await ApiService.episodeMethod(CONSTANTS.API_URLS.DOWNLOAD_EPISODE, episodeId);
+      await ApiService.idMethod(CONSTANTS.API_URLS.DOWNLOAD_EPISODE, episodeId);
       const button = safeGetElement(`episode-download-btn-${episodeId}`);
       if (button) {
         button.disabled = true;
@@ -29,7 +29,7 @@ class EpisodeManager {
 
   async playEpisode(episodeId) {
     try {
-      await ApiService.episodeMethod(CONSTANTS.API_URLS.PLAY_EPISODE, episodeId);
+      await ApiService.idMethod(CONSTANTS.API_URLS.PLAY_EPISODE, episodeId);
       location.reload();
     } catch (error) {
     }
