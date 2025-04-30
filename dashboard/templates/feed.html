@@ -22,8 +22,8 @@
                 {{ episode.title }}
               </div>
               <div class="episode-info">
-                {{ episode.pub_date|date:"m/d H:i" }}
-                {{ episode.duration|default:"0" }}
+                📅{{ episode.pub_date|date:"m/d" }}
+                ⏲️{{ episode.duration_str|default:"0" }}
                 <a href="{{episode.media_link}}" class="btn btn-link">Source</a>
                 {% if episode.audio_url %}
                 <a href="{{episode.audio_url}}" class="btn btn-link">Audio</a>

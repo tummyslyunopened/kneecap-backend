@@ -61,6 +61,14 @@ class Episode(TimeStampedModel):
         unique_together = ("title", "description", "pub_date")
 
     @property
+    def duration_str(self):
+        """Return duration as HH:mm:ss string"""
+        hours = self.duration // 3600
+        minutes = (self.duration % 3600) // 60
+        seconds = self.duration % 60
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+    @property
     def image_url(self):
         return self.subscription.image_url
 
