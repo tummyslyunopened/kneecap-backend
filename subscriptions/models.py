@@ -4,6 +4,8 @@ import uuid
 import logging
 from solo.models import SingletonModel
 from tools.models import TimeStampedModel
+from django.conf import settings
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +42,26 @@ class Subscription(TimeStampedModel):
     class Meta:
         ordering = ["-recent_episode_pub_date"]
 
+    @property
+    def rss_file_path(self):
+        if not self.rss_url:
+            logger.warning(f"no rss mirror found for subscription {self.title}")
+            return None
+        rss_url_rel = self.rss_url.lstrip("/\\")
+        if rss_url_rel.lower().startswith("media/"):
+            rss_url_rel = rss_url_rel[6:]
+        media_root = str(settings.MEDIA_ROOT)
+        return os.path.join(media_root, rss_url_rel)
+
+    @property
+    def rss_file_content(self):
+        try:
+            with open(self.rss_file_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except Exception as e:
+            logger.warn(f"Failed to read RSS file for subscription {self.title}: {e}")
+            return None
+
 
 class Episode(TimeStampedModel):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
@@ -67,6 +89,17 @@ class Episode(TimeStampedModel):
         minutes = (self.duration % 3600) // 60
         seconds = self.duration % 60
         return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+    @property
+    def derive_audio_file_path(self):
+        if not self.audio_url:
+            logger.warning(f"no audio mirror found for episode {self.title}")
+            return None
+        audio_url_rel = self.audio_url.replace(settings.MEDIA_URL, "").lstrip("/\\")
+        if audio_url_rel.lower().startswith("media/"):
+            audio_url_rel = audio_url_rel[6:]
+        media_root = str(settings.MEDIA_ROOT)
+        return os.path.normpath(os.path.join(media_root, audio_url_rel))
 
     @property
     def image_url(self):

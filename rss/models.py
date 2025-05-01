@@ -11,7 +11,6 @@ from rss.parsers import (
     parse_rss_entries_reader,
 )
 import logging
-import os
 
 
 logger = logging.getLogger(__name__)
@@ -64,22 +63,6 @@ class RSSSubscription(Subscription):
         self.rss_url = self.rss_url.replace(settings.SITE_URL.rstrip("/"), "")
         return (success, self.rss_url)
 
-    def rss_file_content(self):
-        if not self.rss_url:
-            logger.warning(f"no rss mirror found for subscription {self.title}")
-            return None
-        rss_url_rel = self.rss_url.lstrip("/\\")
-        if rss_url_rel.lower().startswith("media/"):
-            rss_url_rel = rss_url_rel[6:]
-        media_root = str(settings.MEDIA_ROOT)
-        rss_file_path = os.path.join(media_root, rss_url_rel)
-        try:
-            with open(rss_file_path, "r", encoding="utf-8") as f:
-                return f.read()
-        except Exception as e:
-            logger.warn(f"Failed to read RSS file for subscription {self.title}: {e}")
-            return None
-
     def populate_recent_episodes(self):
         if getattr(settings, "USE_READER_BACKEND", False):
             parse_success, entries = parse_rss_entries_reader(self.rss_url, 7)
@@ -88,28 +71,6 @@ class RSSSubscription(Subscription):
             if not rss_content:
                 return False
             parse_success, entries = parse_rss_entries(rss_content, 7)
-        for entry in entries:
-            try:
-                episode = Episode.objects.create(subscription=self, **entry)
-                episode.save()
-            except Exception as e:
-                logger.info(f"Failed to insert episode: {e}")
-                pass
-        return parse_success
-
-    def refresh_reader(self):
-        """
-        Alternative refresh using lemon24/reader for fetching/parsing feed info.
-        """
-        self.title, self.description, self.image_link = parse_rss_feed_info_reader(self.link)
-        self.download_image()
-        self.download_rss()
-
-    def populate_recent_episodes_reader(self):
-        """
-        Alternative episode population using lemon24/reader for fetching/parsing entries.
-        """
-        parse_success, entries = parse_rss_entries_reader(self.link, 7)
         for entry in entries:
             try:
                 episode = Episode.objects.create(subscription=self, **entry)
@@ -135,3 +96,25 @@ class RSSSubscription(Subscription):
         episode.audio_url = episode.audio_url.replace(settings.SITE_URL.rstrip("/"), "")
         episode.save()
         return success, episode.audio_url
+
+    def refresh_reader(self):
+        """
+        Alternative refresh using lemon24/reader for fetching/parsing feed info.
+        """
+        self.title, self.description, self.image_link = parse_rss_feed_info_reader(self.link)
+        self.download_image()
+        self.download_rss()
+
+    def populate_recent_episodes_reader(self):
+        """
+        Alternative episode population using lemon24/reader for fetching/parsing entries.
+        """
+        parse_success, entries = parse_rss_entries_reader(self.link, 7)
+        for entry in entries:
+            try:
+                episode = Episode.objects.create(subscription=self, **entry)
+                episode.save()
+            except Exception as e:
+                logger.info(f"Failed to insert episode: {e}")
+                pass
+        return parse_success
