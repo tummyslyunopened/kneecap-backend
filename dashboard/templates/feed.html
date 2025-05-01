@@ -24,9 +24,12 @@
               <div class="episode-info">
                 📅{{ episode.pub_date|date:"m/d" }}
                 ⏲️{{ episode.duration_str|default:"0" }}
-                <a href="{{episode.media_link}}" class="btn btn-link">Source</a>
+                <a href="{{episode.media_link}}" class="btn-link">Source</a>
                 {% if episode.audio_url %}
-                <a href="{{episode.audio_url}}" class="btn btn-link">Audio</a>
+                <a href="{{episode.audio_url}}" class="btn-link">Audio</a>
+                {% endif %}
+                {% if episode.transcript_url%}
+                <a href="{{episode.transcript_url}}" class="btn-link">Transcript</a>
                 {% endif %}
               </div>
             </div>
@@ -103,8 +106,8 @@
         </div>
       </div>
     </div>
-    <div class="notes-col">
-      <div class="notes"></div>
+    <div class="transcript-col">
+      <div class="transcript"></div>
     </div>
   </div>
 

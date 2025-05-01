@@ -38,6 +38,7 @@ SECRET_KEY = validate_env("SECRET_KEY")
 MEDIA_ROOT = validate_env("MEDIA_ROOT", default=os.path.join(BASE_DIR, "media"), redact=False)
 DB_PATH = validate_env("DB_PATH", default=os.path.join(BASE_DIR, "db.sqlite3"), redact=False)
 SITE_URL = validate_env("SITE_URL", default="localhost:8000", redact=False)
+TRANSCRIPTION_SERVICE_HOST = validate_env("TRANSCRIPTION_SERVICE_HOST", blank=True, redact=False)
 
 # Use lemon24/reader for feed fetching/parsing if set to True
 USE_READER_BACKEND = validate_env("USE_READER_BACKEND", default=False, bool=True)
@@ -69,6 +70,7 @@ INSTALLED_APPS = [
     "dashboard",
     "opml",
     "player",
+    "transcripts",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -116,6 +118,11 @@ LOGGING = {
         "opml": {
             "handlers": ["console"],
             "level": "WARNING",
+            "propagate": False,
+        },
+        "transcripts": {
+            "handlers": ["console"],
+            "level": "INFO",
             "propagate": False,
         },
     },

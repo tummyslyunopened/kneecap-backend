@@ -74,6 +74,7 @@ class Episode(TimeStampedModel):
     scheduled_date = models.DateTimeField(null=True, blank=True)
     media_link = models.URLField(max_length=200, blank=True)
     audio_url = models.URLField(max_length=500, blank=True)
+    transcript_url = models.URLField(max_length=500, blank=True)
     hidden = models.BooleanField(default=False)
     duration = models.IntegerField(default=0)
     playback_time = models.IntegerField(default=0)
@@ -104,6 +105,23 @@ class Episode(TimeStampedModel):
     @property
     def image_url(self):
         return self.subscription.image_url
+
+    @property
+    def derive_transcript_file_path(self):
+        if not self.derive_audio_file_path:
+            logger.warning(f"no audio mirror found for episode {self.title}")
+            return None
+        rel_path = os.path.relpath(self.derive_audio_file_path, settings.MEDIA_ROOT)
+        transcript_rel = rel_path.replace("episodes", "transcripts") + ".json"
+        return os.path.normpath(os.path.join(settings.MEDIA_ROOT, transcript_rel))
+
+    @property
+    def derive_transcript_url(self):
+        if not self.derive_transcript_file_path:
+            logger.warning(f"no transcript file found for episode {self.title}")
+            return None
+        rel_path = os.path.relpath(self.derive_transcript_file_path, settings.MEDIA_ROOT)
+        return settings.MEDIA_URL + rel_path.replace(os.sep, "/")
 
 
 class Feed(SingletonModel):
