@@ -51,3 +51,5 @@ htmlcov/
 .ruff_cache/
 .backburner/
 
+
+examples/kneecap-transcribe/
