@@ -1,9 +1,10 @@
 from typing import override
 from django.core.management.base import BaseCommand
 from subscriptions.models import Feed
-
 from transcripts.service import generate_transcript
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from django.conf import settings
 
 
 class Command(BaseCommand):
@@ -17,6 +18,17 @@ class Command(BaseCommand):
                 .episodes.filter(audio_url__isnull=False, audio_url__gt="")
                 .exclude(transcript_url__isnull=False, transcript_url__gt="")
             )
-            for e in episodes:
-                generate_transcript(e)
+
+            # Create thread pool
+            with ThreadPoolExecutor(max_workers=settings.TRANSCRIPTION_THREADS) as executor:
+                # Submit all jobs to the executor
+                futures = {executor.submit(generate_transcript, e): e for e in episodes}
+
+                # Wait for all jobs to complete
+                for future in as_completed(futures):
+                    try:
+                        future.result()  # This will raise any exceptions that occurred
+                    except Exception as e:
+                        self.stdout.write(self.style.ERROR(f"Error processing episode: {str(e)}"))
+
             time.sleep(60)

@@ -39,6 +39,7 @@ MEDIA_ROOT = validate_env("MEDIA_ROOT", default=os.path.join(BASE_DIR, "media"),
 DB_PATH = validate_env("DB_PATH", default=os.path.join(BASE_DIR, "db.sqlite3"), redact=False)
 SITE_URL = validate_env("SITE_URL", default="localhost:8000", redact=False)
 TRANSCRIPTION_SERVICE_HOST = validate_env("TRANSCRIPTION_SERVICE_HOST", blank=True, redact=False)
+TRANSCRIPTION_THREADS = int(validate_env("TRANSCRIPTION_THREADS", default=1, redact=False))
 
 # Use lemon24/reader for feed fetching/parsing if set to True
 USE_READER_BACKEND = validate_env("USE_READER_BACKEND", default=False, bool=True)
