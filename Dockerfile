@@ -1,5 +1,6 @@
 FROM ghcr.io/astral-sh/uv:python3.13-alpine AS base
 ENV VIRTUAL_ENV=/app/.venv
+RUN apk add ffmpeg  
 FROM base AS builder 
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
