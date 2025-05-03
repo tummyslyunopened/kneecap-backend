@@ -58,7 +58,7 @@ def poll_job_status(job_id, max_retries=120):
                     return status
                 elif status.get("status") == "failed":
                     logger.info("\nError: Transcription failed")
-                    logger.info("Error details:", status.get("error", "No error details"))
+                    logger.info(f"Error details: {status.get('error', 'No error details')}")
                     return None
 
             logger.info(f"\rProgress: {retry_count}/{max_retries} retries")
