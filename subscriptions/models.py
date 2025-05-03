@@ -6,6 +6,7 @@ from solo.models import SingletonModel
 from tools.models import TimeStampedModel
 from django.conf import settings
 import os
+from ffmpeg import FFmpeg
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +75,7 @@ class Episode(TimeStampedModel):
     scheduled_date = models.DateTimeField(null=True, blank=True)
     media_link = models.URLField(max_length=200, blank=True)
     audio_url = models.URLField(max_length=500, blank=True)
+    low_quality_audio_url = models.URLField(max_length=500, blank=True)
     transcript_url = models.URLField(max_length=500, blank=True)
     hidden = models.BooleanField(default=False)
     duration = models.IntegerField(default=0)
@@ -82,6 +84,56 @@ class Episode(TimeStampedModel):
     class Meta:
         ordering = ["-pub_date"]
         unique_together = ("title", "description", "pub_date")
+
+    def generate_low_quality_audio(self):
+        """
+        Generate a low-quality version of the audio using ffmpeg.
+
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            # Get the original audio file path
+            original_path = self.derive_audio_file_path
+            if not original_path:
+                logger.warning(f"No audio file path for episode {self.title}")
+                return False
+
+            # Get the output path
+            output_path = self.derive_low_quality_file_path
+            if not output_path:
+                logger.warning(f"Could not derive low quality file path for episode {self.title}")
+                return False
+
+            # Ensure the directory exists
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+            # Run ffmpeg to create low quality version using python-ffmpeg
+            ffmpeg = (
+                FFmpeg()
+                .option("y")  # overwrite output file if it exists
+                .input(original_path)
+                .output(
+                    output_path,
+                    {
+                        "ac": 1,  # Mono audio
+                        "ar": "11025",  # 22.05kHz sample rate (increased for better quality)
+                        "ab": "16k",  # 32kbps audio quality (increased for better quality)
+                        # "af": "highpass=f=200, lowpass=f=3000, volume=1.5",  # Audio filters: remove low and high frequency noise, boost volume slightly
+                    },
+                )
+            )
+            ffmpeg.execute()
+
+            # Update the low quality audio URL
+            self.low_quality_audio_url = self.derive_low_quality_url
+            self.save()
+            logger.info(f"Successfully created low quality audio for episode {self.title}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to create low quality audio for episode {self.title}: {e}")
+            return False
 
     @property
     def duration_str(self):
@@ -105,6 +157,47 @@ class Episode(TimeStampedModel):
     @property
     def image_url(self):
         return self.subscription.image_url
+
+    @property
+    def derive_low_quality_file_path(self):
+        """
+        Get the path for the low quality audio file.
+
+        Returns:
+            str: Path to the low quality audio file
+        """
+        if not self.audio_url:
+            logger.warning(f"no audio mirror found for episode {self.title}")
+            return None
+
+        # Get the relative path from media root
+        rel_path = self.audio_url.replace(settings.MEDIA_URL, "").lstrip("/\\")
+        if rel_path.lower().startswith("media/"):
+            rel_path = rel_path[6:]
+
+        # Replace episodes with episodes-low
+        low_rel_path = rel_path.replace("episodes/", "episodes-low/")
+
+        # Create the full path
+        media_root = str(settings.MEDIA_ROOT)
+        return os.path.normpath(os.path.join(media_root, low_rel_path))
+
+    @property
+    def derive_low_quality_url(self):
+        """
+        Get the URL for the low quality audio file by converting the file path to a URL.
+
+        Returns:
+            str: URL to the low quality audio file
+        """
+        file_path = self.derive_low_quality_file_path
+        if not file_path:
+            logger.warning(f"no low quality file path found for episode {self.title}")
+            return None
+
+        # Convert file path to URL by replacing MEDIA_ROOT with MEDIA_URL
+        rel_path = os.path.relpath(file_path, settings.MEDIA_ROOT)
+        return settings.MEDIA_URL + rel_path.replace(os.sep, "/")
 
     @property
     def derive_transcript_file_path(self):

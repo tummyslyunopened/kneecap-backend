@@ -17,6 +17,7 @@ dependencies = [
     "python-dotenv>=1.1.0",
     "defusedxml>=0.7.1",
     "reader>=3.17",
+    "python-ffmpeg>=2.0.12",
 ]
 
 

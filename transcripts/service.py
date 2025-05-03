@@ -118,9 +118,19 @@ def create_transcript_segments(episode: Episode, result):
 
 
 def generate_transcript(episode: Episode):
-    """Generate transcript for an episode and save both JSON and database records."""
+    """Generate transcript for an episode and save both JSON and database records.
+    Uses low quality audio file if available for more efficient transcription."""
     logger.info(f"Generating Transcript for episode {episode.title}")
-    job_id = start_transcription(episode.derive_audio_file_path)
+    
+    # Try to use low quality audio file if available
+    if episode.low_quality_audio_url:
+        logger.info("Using low quality audio file for transcription")
+        audio_path = episode.derive_low_quality_file_path
+    else:
+        logger.info("Using original audio file for transcription")
+        audio_path = episode.derive_audio_file_path
+    
+    job_id = start_transcription(audio_path)
     if not job_id:
         return False
     logger.info("Polling for results...")

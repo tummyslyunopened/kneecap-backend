@@ -17,6 +17,7 @@ class Command(BaseCommand):
                 Feed.get_solo()
                 .episodes.filter(audio_url__isnull=False, audio_url__gt="")
                 .exclude(transcript_url__isnull=False, transcript_url__gt="")
+                .order_by("duration")
             )
 
             # Create thread pool
