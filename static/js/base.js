@@ -3,7 +3,7 @@ export const CONSTANTS = {
   EPISODE_TITLE_MARQUEE_SPEED: 95,
   MARQUEE_FOCUS_TIME_DELAY: 1,
   SCROLL_DEBOUNCE_TIME: 500,
-  PLAYBACK_LOG_INTERVAL: 3000,
+  PLAYBACK_LOG_INTERVAL: 10,
   MARQUEE_CHECK_INTERVAL: 100,
   SCROLL_OFFSET: 75,
   SKIP_TIME: 15,
@@ -34,7 +34,9 @@ export const state = {
   currentTopEpisode: null,
   isPlaying: false,
   marqueeStyleSheet: null,
-  lastRecordedPlaybackTime: 0
+  lastRecordedPlaybackTime: 0,
+  lastSentPlaybackTime: 0,
+  transcript_visible: false
 };
 
 import { debounce } from './utils.js';
@@ -45,7 +47,9 @@ import EpisodeManager from './episodeManager.js';
 import SubscriptionManager from './subscriptionManager.js';
 import { scrollToCurrentTopEpisode } from './uxSugar.js';
 import { addMarqueeEffect, removeMarqueeEffect } from './marquee.js';
+import { TranscriptManager } from './transcriptManager.js';
 
+// Bind submodule methods to window
 const episodeManager = new EpisodeManager();
 window.hideEpisode = episodeManager.hideEpisode.bind(episodeManager);
 window.downloadEpisode = episodeManager.downloadEpisode.bind(episodeManager);
@@ -55,21 +59,55 @@ window.toggleChron = episodeManager.toggleChron.bind(episodeManager);
 
 const audioPlayer = new AudioPlayer();
 window.setPlayerToTime = audioPlayer.setTime.bind(audioPlayer);
+window.audioPlayer = audioPlayer;
 
 const subscriptionManager = new SubscriptionManager();
 window.deleteSubscription = subscriptionManager.deleteSubscription.bind(subscriptionManager);
 
+// Initialize TranscriptManager
+const transcriptManager = new TranscriptManager();
 
+// Bind TranscriptManager methods to window
+window.showTranscript = transcriptManager.showTranscript.bind(transcriptManager);
+window.hideTranscript = transcriptManager.hideTranscript.bind(transcriptManager);
+window.startTranscriptUpdateInterval = transcriptManager.startUpdateInterval.bind(transcriptManager);
+window.stopTranscriptUpdateInterval = transcriptManager.stopUpdateInterval.bind(transcriptManager);
 
+// Bind transcript methods
+window.showTranscript = () => {
+    transcriptManager.showTranscript();
+    transcriptManager.startUpdateInterval();
+};
+
+window.hideTranscript = () => {
+    transcriptManager.hideTranscript();
+    transcriptManager.stopUpdateInterval();
+};
+
+window.styleActiveTranscriptSegment = transcriptManager.styleActiveTranscriptSegment;
+
+// other global functions
 
 const logPlaybackTime = async () => {
-  const currentTime = audioPlayer.getCurrentTime();
-  if (typeof currentTime !== 'number' || currentTime === 0 || currentTime === state.lastRecordedPlaybackTime) {
-    return;
+  if (!window.audioPlayer || !window.audioPlayer.audio) {
+    console.log('Audio Player not Found')
+    return; // Don't do anything if audio player isn't ready
+  }
+  const currentTime = window.audioPlayer.getCurrentTime();
+  // console.log('logPlaybackTime called - current time:', currentTime);
+  if (typeof currentTime !== 'number' || isNaN(currentTime)) {
+    console.log('Invalid time:', currentTime);
+    return; // Don't update if we don't have a valid time
   }
   state.lastRecordedPlaybackTime = currentTime;
-  await ApiService.post(CONSTANTS.API_URLS.SET_PLAYBACK_TIME, currentTime);
+  if (Math.abs(currentTime - state.lastSentPlaybackTime) >= CONSTANTS.PLAYBACK_LOG_INTERVAL) {
+    state.lastSentPlaybackTime = currentTime;
+    console.log('Sending time to API:', currentTime);
+    await ApiService.post(CONSTANTS.API_URLS.SET_PLAYBACK_TIME, currentTime);
+  }
+  // console.log('Current time:', currentTime, 'Last sent time:', state.lastSentPlaybackTime);
 };
+
 
 const handleScroll = debounce(() => {
   state.lastScrollTime = Date.now();
@@ -89,8 +127,11 @@ const handleScroll = debounce(() => {
   }
 }, CONSTANTS.SCROLL_DEBOUNCE_TIME);
 
+// Intervals
+setInterval(logPlaybackTime, 1 );
+
+// Event Listeners
 window.addEventListener('scroll', handleScroll);
-setInterval(logPlaybackTime, CONSTANTS.PLAYBACK_LOG_INTERVAL);
 
 state.currentTopEpisode = findTopEpisodeElement();
 addMarqueeEffect(state.currentTopEpisode.querySelector('.episode-title'), CONSTANTS.MAX_EPISODE_TITLE_WIDTH);

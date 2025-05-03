@@ -43,72 +43,90 @@
       </div>
 
       <div class="sticky-footer player-container">
-        <div class="controls">
-          <p class="player-text">
-            {{ player_episode.subscription.title|slice:":40" }}
-            <br />{{player_episode.title|slice:":40"}}
-          </p>
-          <div class="player-controls-group">
-            <div class="player-button skip-backward">
-              <svg role="img" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
-                aria-labelledby="historyIconTitle" stroke="#9b51e0" stroke-width="1.8" stroke-linecap="square"
-                stroke-linejoin="miter" fill="none" color="#9b51e0">
-                <title id="historyIconTitle">Skip Backward</title>
+
+        <div class="overlays-controls" style="display: flex; justify-content: space-evenly;">
+          <button id="show-transcript" type="button" class="transcript-header btn btn-primary" onclick="showTranscript()">Transcript</button>
+          <button id="close-transcript" type="button" class="transcript-header btn btn-danger" onclick="hideTranscript()" style="display: none;">Close</button>
+        </div>
+        <div id="transcript-container" class="transcript-container">
+          <div class="transcript">
+            {% for segment in player_episode.transcript_segments.all %}
+            <div id="segment-{{segment.pk}}" class="transcript-segment m-1">
+              <span class="transcript-start-time" style="display: none;">{{ segment.start_time }}</span>
+              <span class="transcript-end-time" style="display: none;">{{ segment.end_time }}</span>
+              <span class="transcript-text">{{ segment.text }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+
+      <div class="controls">
+        <p class="player-text">
+          {{ player_episode.subscription.title|slice:":40" }}
+          <br />{{player_episode.title|slice:":40"}}
+        </p>
+        <div class="player-controls-group">
+          <div class="player-button skip-backward">
+            <svg role="img" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+              aria-labelledby="historyIconTitle" stroke="#9b51e0" stroke-width="1.8" stroke-linecap="square"
+              stroke-linejoin="miter" fill="none" color="#9b51e0">
+              <title id="historyIconTitle">Skip Backward</title>
+              <polyline points="1 12 3 14 5 12" />
+              <polyline points="12 7 12 12 15 15" />
+              <path
+                d="M12,21 C16.9705627,21 21,16.9705627 21,12 C21,7.02943725 16.9705627,3 12,3 C7.02943725,3 3,7.02943725 3,12 C3,11.975305 3,12.3086383 3,13" />
+            </svg>
+          </div>
+          <div class="player-button play-button">
+            <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g transform="scale(-1,1) translate(-80,0)">
+                <path
+                  d="M26.1333 38.4C25.0667 39.2 25.0667 40.8 26.1333 41.6L52.8 61.6C54.1185 62.5889 55 61.6481 55 60L55 20C55 18.3519 54.1185 17.4111 52.8 18.4L26.1333 38.4Z"
+                  fill="#9B51E0" stroke="#9B51E0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
+              </g>
+            </svg>
+          </div>
+          <div class="player-button skip-forward">
+            <svg role="img" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
+              aria-labelledby="historyIconTitle" stroke="#9b51e0" stroke-width="1.8" stroke-linecap="square"
+              stroke-linejoin="miter" fill="none" color="#9b51e0">
+              <title id="historyIconTitle">Skip Forward</title>
+              <g transform="scale(-1,1) translate(-24,0)">
                 <polyline points="1 12 3 14 5 12" />
                 <polyline points="12 7 12 12 15 15" />
                 <path
                   d="M12,21 C16.9705627,21 21,16.9705627 21,12 C21,7.02943725 16.9705627,3 12,3 C7.02943725,3 3,7.02943725 3,12 C3,11.975305 3,12.3086383 3,13" />
-              </svg>
-            </div>
-            <div class="player-button play-button">
-              <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g transform="scale(-1,1) translate(-80,0)">
-                  <path
-                    d="M26.1333 38.4C25.0667 39.2 25.0667 40.8 26.1333 41.6L52.8 61.6C54.1185 62.5889 55 61.6481 55 60L55 20C55 18.3519 54.1185 17.4111 52.8 18.4L26.1333 38.4Z"
-                    fill="#9B51E0" stroke="#9B51E0" stroke-width="4" stroke-linecap="square" stroke-linejoin="round" />
-                </g>
-              </svg>
-            </div>
-            <div class="player-button skip-forward">
-              <svg role="img" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
-                aria-labelledby="historyIconTitle" stroke="#9b51e0" stroke-width="1.8" stroke-linecap="square"
-                stroke-linejoin="miter" fill="none" color="#9b51e0">
-                <title id="historyIconTitle">Skip Forward</title>
-                <g transform="scale(-1,1) translate(-24,0)">
-                  <polyline points="1 12 3 14 5 12" />
-                  <polyline points="12 7 12 12 15 15" />
-                  <path
-                    d="M12,21 C16.9705627,21 21,16.9705627 21,12 C21,7.02943725 16.9705627,3 12,3 C7.02943725,3 3,7.02943725 3,12 C3,11.975305 3,12.3086383 3,13" />
-                </g>
-              </svg>
-            </div>
+              </g>
+            </svg>
           </div>
         </div>
+      </div>
 
-        <div class="progress-container">
-          <div class="progress-bar"></div>
-          <div class="progress-handle"></div>
-        </div>
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+        <div class="progress-handle"></div>
+      </div>
 
-        <div class="time-display">
-          <span class="current-time">0:00</span>
-          <span class="duration">0:00</span>
-        </div>
-        <div>
-          <audio id="player-audio" onloadedmetadata="setPlayerToTime({{ player_episode.playback_time }})">
-            {% if player_episode.audio_url %}
-              <source src="{{ player_episode.audio_url }}" type="audio/mpeg">
-            {% else %}
-              <source src="{{ player_episode.media_link }}" type="audio/mpeg">
-            {% endif %}
-            Your browser does not support the audio element.
-          </audio>
-        </div>
+      <div class="time-display">
+        <span class="current-time">0:00</span>
+        <span class="duration">0:00</span>
+      </div>
+      <div>
+        <audio id="player-audio" data-playback-time="{{ player_episode.playback_time }}">
+          {% if player_episode.audio_url %}
+          <source src="{{ player_episode.audio_url }}" type="audio/mpeg">
+          {% else %}
+          <source src="{{ player_episode.media_link }}" type="audio/mpeg">
+          {% endif %}
+          Your browser does not support the audio element.
+        </audio>
       </div>
     </div>
-    <div class="transcript-col">
-      <div class="transcript"></div>
-    </div>
   </div>
+  <div class="transcript-col">
+    <div class="transcript"></div>
+  </div>
+</div>
 
-  {% endblock %}
+{% endblock %}

@@ -1,0 +1,12 @@
+.transcript-container {
+    display: none;
+    background-color: #e5e0f8;
+    max-height: 50vh; 
+    overflow-y: scroll;
+    color: black;
+    font-weight: normal;
+}
+.segment-active {
+    background-color: #d1c9f0;
+    font-weight: bold;
+}
