@@ -1,5 +1,5 @@
 import ApiService from "./apiService.js";
-import {CONSTANTS, state} from "./base.js";
+import {CONSTANTS} from "./base.js";
 import { safeGetElement } from "./utils.js";
 
 class SubscriptionManager {

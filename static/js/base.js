@@ -67,12 +67,6 @@ window.deleteSubscription = subscriptionManager.deleteSubscription.bind(subscrip
 // Initialize TranscriptManager
 const transcriptManager = new TranscriptManager();
 
-// Bind TranscriptManager methods to window
-window.showTranscript = transcriptManager.showTranscript.bind(transcriptManager);
-window.hideTranscript = transcriptManager.hideTranscript.bind(transcriptManager);
-window.startTranscriptUpdateInterval = transcriptManager.startUpdateInterval.bind(transcriptManager);
-window.stopTranscriptUpdateInterval = transcriptManager.stopUpdateInterval.bind(transcriptManager);
-
 // Bind transcript methods
 window.showTranscript = () => {
     transcriptManager.showTranscript();
@@ -84,7 +78,6 @@ window.hideTranscript = () => {
     transcriptManager.stopUpdateInterval();
 };
 
-window.styleActiveTranscriptSegment = transcriptManager.styleActiveTranscriptSegment;
 
 // other global functions
 
