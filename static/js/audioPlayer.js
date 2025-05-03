@@ -9,8 +9,56 @@ class AudioPlayer {
     this.currentTime = document.querySelector('.current-time');
     this.duration = document.querySelector('.duration');
     this.playButton = document.querySelector('.play-button');
+    this.errorCount = 0;
+    this.maxRetries = 3;
+    this.lastSeekTime = 0;
+    this.lastMemoryCheck = 0;
+    this.memoryCheckInterval = 30000; // 30 seconds
+    this.memoryUsageHistory = [];
     this.bindEvents();
     this.setupKeyboardShortcuts();
+    this.startMemoryMonitoring();
+  }
+
+  startMemoryMonitoring() {
+    // Start memory monitoring every 30 seconds
+    setInterval(() => this.checkMemoryUsage(), this.memoryCheckInterval);
+  }
+
+  checkMemoryUsage() {
+    if (!performance || !performance.memory) return;
+    
+    const now = Date.now();
+    if (now - this.lastMemoryCheck < this.memoryCheckInterval) return;
+    this.lastMemoryCheck = now;
+
+    const memory = {
+      timestamp: now,
+      usedJSHeapSize: performance.memory.usedJSHeapSize,
+      totalJSHeapSize: performance.memory.totalJSHeapSize,
+      jsHeapSizeLimit: performance.memory.jsHeapSizeLimit
+    };
+
+    this.memoryUsageHistory.push(memory);
+    if (this.memoryUsageHistory.length > 10) {
+      this.memoryUsageHistory.shift(); // Keep only last 10 measurements
+    }
+
+    // Log memory stats if they're getting too high
+    const usedPercentage = (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100;
+    if (usedPercentage > 80) {
+      console.warn('High memory usage detected:', memory);
+      this.logMemoryHistory();
+    }
+  }
+
+  logMemoryHistory() {
+    console.log('Memory usage history (last 10 measurements):');
+    this.memoryUsageHistory.forEach((mem, index) => {
+      const usedPercentage = (mem.usedJSHeapSize / mem.jsHeapSizeLimit) * 100;
+      console.log(`[${index}] Time: ${new Date(mem.timestamp).toLocaleTimeString()}, ` +
+                 `Used: ${Math.round(usedPercentage)}% (${Math.round(mem.usedJSHeapSize / 1024 / 1024)}MB)`);
+    });
   }
 
   bindEvents() {
@@ -21,8 +69,38 @@ class AudioPlayer {
     this.audio?.addEventListener('play', () => this.updatePlayState(true));
     this.audio?.addEventListener('pause', () => this.updatePlayState(false));
     this.audio?.addEventListener('ended', () => this.updatePlayState(false));
+    this.audio?.addEventListener('error', (e) => this.handleError(e));
+    this.audio?.addEventListener('seeked', () => this.handleSeek());
     document.querySelector('.skip-forward')?.addEventListener('click', () => this.skip(CONSTANTS.SKIP_TIME));
     document.querySelector('.skip-backward')?.addEventListener('click', () => this.skip(-CONSTANTS.SKIP_TIME));
+  }
+
+  handleError(event) {
+    console.error('Audio error:', event);
+    this.errorCount++;
+    if (this.errorCount < this.maxRetries) {
+      // Try to recover by seeking back a bit
+      this.audio.currentTime = Math.max(0, this.audio.currentTime - 10);
+      // Log memory state when error occurs
+      this.logMemoryHistory();
+    } else {
+      // If too many errors, pause and alert
+      this.audio.pause();
+      alert('Audio playback error. Please refresh the page and try again.');
+      // Log final memory state
+      this.logMemoryHistory();
+    }
+  }
+
+  handleSeek() {
+    const currentTime = this.audio.currentTime;
+    const lastTime = this.lastSeekTime;
+    
+    // If we're seeking back, reset error count
+    if (currentTime < lastTime) {
+      this.errorCount = 0;
+    }
+    this.lastSeekTime = currentTime;
   }
 
   setupKeyboardShortcuts() {
@@ -126,7 +204,12 @@ class AudioPlayer {
 
   skip(seconds) {
     if (!this.audio) return;
-    this.audio.currentTime = Math.max(0, Math.min(this.audio.currentTime + seconds, this.audio.duration));
+    const newTime = Math.max(0, Math.min(this.audio.currentTime + seconds, this.audio.duration));
+    this.audio.currentTime = newTime;
+    // Reset error count when skipping
+    this.errorCount = 0;
+    // Log memory usage when skipping
+    this.checkMemoryUsage();
   }
 
   adjustVolume(delta) {
