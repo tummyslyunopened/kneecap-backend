@@ -8,6 +8,8 @@ export const CONSTANTS = {
   SCROLL_OFFSET: 75,
   SKIP_TIME: 15,
   SCROLL_EPISODE_OFFSET: 60,
+  AUTOPLAY_THRESHOLD: 10,
+  AUTOCOOLDOWN: 5000,
 
   API_URLS: {
     SET_PLAYBACK_TIME: '/set-episode-playback-time',
@@ -16,6 +18,7 @@ export const CONSTANTS = {
     DOWNLOAD_EPISODE: '/download-episode',
     PLAY_EPISODE: '/play-episode',
     TOGGLE_CHRONOLOGICAL: '/toggle-feed-chronological',
+    TOGGLE_AUTOPLAY: '/toggle-feed-autoplay',
     HIDE_ALL_EPISODES: '/hide-all-episodes',
   },
 
@@ -34,9 +37,13 @@ export const state = {
   currentTopEpisode: null,
   isPlaying: false,
   marqueeStyleSheet: null,
-  lastRecordedPlaybackTime: 0,
-  lastSentPlaybackTime: 0,
-  transcript_visible: false
+  ...(document.getElementById('initial-playback-time') ? {
+    lastRecordedPlaybackTime: parseFloat(document.getElementById('initial-playback-time').textContent) || 0,
+    lastSentPlaybackTime: parseFloat(document.getElementById('initial-playback-time').textContent) || 0
+  } : {}),
+  transcript_visible: false,
+  isAutoplayEnabled: document.getElementById('autoplay-toggle')?.checked || false,
+  lastAutoplayTime: 0,
 };
 
 import { debounce } from './utils.js';
@@ -49,56 +56,78 @@ import { scrollToCurrentTopEpisode } from './uxSugar.js';
 import { addMarqueeEffect, removeMarqueeEffect } from './marquee.js';
 import { TranscriptManager } from './transcriptManager.js';
 
-// Bind submodule methods to window
+const subscriptionManager = new SubscriptionManager();
+window.deleteSubscription = subscriptionManager.deleteSubscription.bind(subscriptionManager)
+
 const episodeManager = new EpisodeManager();
 window.hideEpisode = episodeManager.hideEpisode.bind(episodeManager);
 window.downloadEpisode = episodeManager.downloadEpisode.bind(episodeManager);
 window.playEpisode = episodeManager.playEpisode.bind(episodeManager);
 window.hideAll = episodeManager.hideAll.bind(episodeManager);
 window.toggleChron = episodeManager.toggleChron.bind(episodeManager);
+window.toggleAutoplay = episodeManager.toggleAutoplay.bind(episodeManager);
 
 const audioPlayer = new AudioPlayer();
 window.setPlayerToTime = audioPlayer.setTime.bind(audioPlayer);
-window.audioPlayer = audioPlayer;
+setPlayerToTime(state.lastRecordedPlaybackTime)
 
-const subscriptionManager = new SubscriptionManager();
-window.deleteSubscription = subscriptionManager.deleteSubscription.bind(subscriptionManager);
-
-// Initialize TranscriptManager
 const transcriptManager = new TranscriptManager();
-
-// Bind transcript methods
 window.showTranscript = () => {
-    transcriptManager.showTranscript();
-    transcriptManager.startUpdateInterval();
+  transcriptManager.showTranscript();
+  transcriptManager.startUpdateInterval();
 };
-
 window.hideTranscript = () => {
-    transcriptManager.hideTranscript();
-    transcriptManager.stopUpdateInterval();
+  transcriptManager.hideTranscript();
+  transcriptManager.stopUpdateInterval();
 };
-
-
-// other global functions
+const getNextEpisode = () => {
+  const episodePreviews = document.querySelectorAll('.episode-preview');
+  if (!episodePreviews.length) return null;
+  const currentEpisodeId = document.getElementById('player-id').textContent.trim();
+  for (const preview of episodePreviews) {
+    if (preview.id === currentEpisodeId) continue;
+    return preview.id;
+  }
+  return null;
+};
+const checkAutoplay = async () => {
+  if (!state.isAutoplayEnabled || !audioPlayer) {
+    return;
+  }
+  const timeSinceLastAutoplay = Date.now() - state.lastAutoplayTime;
+  if (timeSinceLastAutoplay < CONSTANTS.AUTOCOOLDOWN) {
+    return;
+  }
+  const currentTime = audioPlayer.getCurrentTime();
+  const duration = audioPlayer.audio.duration;
+  if (duration - currentTime <= CONSTANTS.AUTOPLAY_THRESHOLD) {
+    const nextEpisodeId = getNextEpisode();
+    if (nextEpisodeId) {
+      const currentEpisodeId = document.getElementById('player-id').textContent.trim();
+      await window.hideEpisode(currentEpisodeId);
+      await window.playEpisode(nextEpisodeId);
+      state.lastAutoplayTime = Date.now();
+    }
+  }
+};
 
 const logPlaybackTime = async () => {
-  if (!window.audioPlayer || !window.audioPlayer.audio) {
+  if (!audioPlayer) {
     console.log('Audio Player not Found')
-    return; // Don't do anything if audio player isn't ready
+    return;
   }
-  const currentTime = window.audioPlayer.getCurrentTime();
-  // console.log('logPlaybackTime called - current time:', currentTime);
+  const currentTime = audioPlayer.getCurrentTime();
   if (typeof currentTime !== 'number' || isNaN(currentTime)) {
     console.log('Invalid time:', currentTime);
-    return; // Don't update if we don't have a valid time
+    return;
   }
   state.lastRecordedPlaybackTime = currentTime;
   if (Math.abs(currentTime - state.lastSentPlaybackTime) >= CONSTANTS.PLAYBACK_LOG_INTERVAL) {
     state.lastSentPlaybackTime = currentTime;
     console.log('Sending time to API:', currentTime);
-    await ApiService.post(CONSTANTS.API_URLS.SET_PLAYBACK_TIME, currentTime);
+    ApiService.post(CONSTANTS.API_URLS.SET_PLAYBACK_TIME, currentTime);
   }
-  // console.log('Current time:', currentTime, 'Last sent time:', state.lastSentPlaybackTime);
+  await checkAutoplay();
 };
 
 
@@ -119,16 +148,10 @@ const handleScroll = debounce(() => {
     }
   }
 }, CONSTANTS.SCROLL_DEBOUNCE_TIME);
-
-// Intervals
-setInterval(logPlaybackTime, 1 );
-
-// Event Listeners
+setInterval(logPlaybackTime, 1);
 window.addEventListener('scroll', handleScroll);
-
 state.currentTopEpisode = findTopEpisodeElement();
 addMarqueeEffect(state.currentTopEpisode.querySelector('.episode-title'), CONSTANTS.MAX_EPISODE_TITLE_WIDTH);
-
 document.addEventListener('DOMContentLoaded', () => {
   const previews = document.querySelectorAll('.episode-preview');
   previews.forEach(preview => {

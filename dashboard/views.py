@@ -53,6 +53,14 @@ def toggle_feed_chronological(request):
     return HttpResponse("<script>history.back();</script>")
 
 
+def toggle_feed_autoplay(request):
+    if request.method == "POST":
+        feed = Feed.get_solo()
+        feed.autoplay_enabled = not feed.autoplay_enabled
+        feed.save()
+    return HttpResponse("<script>history.back();</script>")
+
+
 def hide_all_episodes(request):
     if request.method == "POST":
         feed = Feed.get_solo()
@@ -79,5 +87,9 @@ def subscriptions(request):
 
 
 def feed(request):
-    context = {"episodes": Feed.get_solo().episodes, "player_episode": Player.get_solo().episode}
+    context = {
+        "episodes": Feed.get_solo().episodes,
+        "player_episode": Player.get_solo().episode,
+        "feed": Feed.get_solo(),
+    }
     return render(request, "feed.html", context=context)

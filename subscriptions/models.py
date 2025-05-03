@@ -220,6 +220,7 @@ class Episode(TimeStampedModel):
 class Feed(SingletonModel):
     chronological = models.BooleanField(default=False)
     view_hidden = models.BooleanField(default=False)
+    autoplay_enabled = models.BooleanField(default=True)
     cutoff_days = models.IntegerField(default=7)
 
     @property

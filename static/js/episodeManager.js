@@ -65,6 +65,15 @@ class EpisodeManager {
     } catch (error) {
     }
   }
+
+  async toggleAutoplay() {
+    try {
+      await ApiService.post(CONSTANTS.API_URLS.TOGGLE_AUTOPLAY);
+      const toggle = document.getElementById('autoplay-toggle');
+      state.isAutoplayEnabled = toggle.checked;
+    } catch (error) {
+    }
+  }
 }
 
 export default EpisodeManager;
