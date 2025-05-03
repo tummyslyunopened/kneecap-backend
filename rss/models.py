@@ -67,7 +67,7 @@ class RSSSubscription(Subscription):
         if getattr(settings, "USE_READER_BACKEND", False):
             parse_success, entries = parse_rss_entries_reader(self.rss_url, 7)
         else:
-            rss_content = self.rss_file_content()
+            rss_content = self.rss_file_content
             if not rss_content:
                 return False
             parse_success, entries = parse_rss_entries(rss_content, 7)
