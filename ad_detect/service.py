@@ -1,6 +1,6 @@
 import requests
 import json
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import logging
 from pathlib import Path
 from transcripts.models import TranscriptSegment
@@ -93,11 +93,12 @@ class AdDetectionService:
             "stream": False,
         }
 
-    def _process_batch(self, batch: List[BaseTranscriptSegment]) -> bool:
+    def _process_batch(self, batch: List[BaseTranscriptSegment]) -> Tuple[bool, bool]:
         """Process a single batch of segments."""
         batch_text = " ".join(segment.text for segment in batch)
         payload = self._prepare_payload(batch_text)
         success = False
+        ad_detected = False
 
         try:
             response = requests.post(self.config.api_url, json=payload, headers=self.headers)
@@ -105,11 +106,7 @@ class AdDetectionService:
             if response.status_code == 200:
                 response_data = response.json()
                 success = True
-                if self._is_ad_response(response_data):
-                    logger.info("Detected advertising content in batch")
-                    return True
-                else:
-                    return False
+                ad_detected = self._is_ad_response(response_data)
             else:
                 logger.error(
                     f"Failed to get response. Status code: {response.status_code}, Error: {response.text}"
@@ -118,7 +115,7 @@ class AdDetectionService:
         except requests.exceptions.RequestException as e:
             logger.error(f"Request failed: {str(e)}")
 
-        return success
+        return success, ad_detected
 
     def _is_ad_response(self, response_data: Dict) -> bool:
         """Check if response indicates advertising content."""
@@ -132,15 +129,14 @@ class AdDetectionService:
     ) -> List[BaseTranscriptSegment]:
         """Detect ads in transcript segments."""
         processed_segments = transcript_segments.copy()
-
         for i in range(0, len(processed_segments), self.config.batch_size):
             batch = processed_segments[i : i + self.config.batch_size]
-
-            if self._process_batch(batch):
-                for segment in batch:
-                    segment.mark_as_ad()
+            success, ad_detected = self._process_batch(batch)
             for segment in batch:
-                segment.mark_as_reviewed()
+                if success:
+                    if ad_detected:
+                        segment.mark_as_ad()
+                    segment.mark_as_reviewed()
 
         return processed_segments
 
