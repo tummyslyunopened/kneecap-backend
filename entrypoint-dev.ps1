@@ -13,6 +13,7 @@ Start-Process -FilePath "uv" -ArgumentList "run manage.py sync_rss_data" -Redire
 Start-Process -FilePath "uv" -ArgumentList "run manage.py download_media" -RedirectStandardOutput "./logs/download-media-output.log" -RedirectStandardError "./logs/download-media-error-log" -NoNewWindow
 Start-Process -FilePath "uv" -ArgumentList "run manage.py transcribe_episodes" -RedirectStandardOutput "./logs/transcribe-episodes-output.log" -RedirectStandardError "./logs/transcribe-episodes-error-log" -NoNewWindow
 Start-Process -FilePath "uv" -ArgumentList "run manage.py generate_low_quality" -RedirectStandardOutput "./logs/generate-low-quality-output.log" -RedirectStandardError "./logs/generate-low-quality-error-log" -NoNewWindow
+Start-Process -FilePath "uv" -ArgumentList "run manage.py detect_ads" -RedirectStandardOutput "./logs/detect-ads-output.log" -RedirectStandardError "./logs/detect-ads-error.log" -NoNewWindow
 
 # Use Get-Content to follow the logs
-Get-Content ./logs/runserver-output.log, ./logs/runserver-error.log, ./logs/sync-rss-data-output.log, ./logs/sync-rss-data-error.log, ./logs/download-media-output.log, ./logs/download-media-error-log, ./logs/transcribe-episodes-output.log, ./logs/transcribe-episodes-error-log, ./logs/generate-low-quality-output.log, ./logs/generate-low-quality-error-log -Wait
+Get-Content ./logs/runserver-output.log, ./logs/runserver-error.log, ./logs/sync-rss-data-output.log, ./logs/sync-rss-data-error.log, ./logs/download-media-output.log, ./logs/download-media-error-log, ./logs/transcribe-episodes-output.log, ./logs/transcribe-episodes-error-log, ./logs/generate-low-quality-output.log, ./logs/generate-low-quality-error-log, ./logs/detect-ads-output.log, ./logs/detect-ads-error.log -Wait

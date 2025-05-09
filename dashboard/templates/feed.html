@@ -64,7 +64,11 @@
         <div id="transcript-container" class="transcript-container">
           <div class="transcript">
             {% for segment in player_episode.transcript_segments.all %}
+            {% if segment.ai_detected_advertising %}
+            <div id="segment-{{segment.pk}}" class="transcript-segment suspected-advertisement m-1">
+            {% else %}
             <div id="segment-{{segment.pk}}" class="transcript-segment m-1">
+            {% endif %}
               <span class="transcript-start-time" style="display: none;">{{ segment.start_time }}</span>
               <span class="transcript-end-time" style="display: none;">{{ segment.end_time }}</span>
               <span class="transcript-text">{{ segment.text }}</span>

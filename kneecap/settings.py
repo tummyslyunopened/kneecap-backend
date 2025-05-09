@@ -42,6 +42,7 @@ TRANSCRIPTION_SERVICE_HOST = validate_env("TRANSCRIPTION_SERVICE_HOST", blank=Tr
 TRANSCRIPTION_THREADS = int(validate_env("TRANSCRIPTION_THREADS", default=1, redact=False))
 LOW_QUALITY_THREADS = int(validate_env("LOW_QUALITY_THREADS", default=1, redact=False))
 
+LLM_ENDPOINT = validate_env("LLM_ENDPOINT", blank=True, redact=False)
 # Use lemon24/reader for feed fetching/parsing if set to True
 USE_READER_BACKEND = validate_env("USE_READER_BACKEND", default=False, bool=True)
 
@@ -73,6 +74,7 @@ INSTALLED_APPS = [
     "opml",
     "player",
     "transcripts",
+    "ad_detect",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

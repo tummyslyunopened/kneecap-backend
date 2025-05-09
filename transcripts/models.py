@@ -15,3 +15,5 @@ class TranscriptSegment(TimeStampedModel):
     start_time = models.CharField(max_length=100)
     end_time = models.CharField(max_length=100)
     text = models.CharField(max_length=1000)
+    ai_advertising_reviewed = models.BooleanField(default=False)
+    ai_detected_advertising = models.BooleanField(default=False)
