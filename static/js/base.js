@@ -42,8 +42,9 @@ export const state = {
     lastSentPlaybackTime: parseFloat(document.getElementById('initial-playback-time').textContent) || 0
   } : {}),
   transcript_visible: false,
+  isFollowScroll: true,
   isAutoplayEnabled: document.getElementById('autoplay-toggle')?.checked || false,
-  lastAutoplayTime: 0,
+  lastAutoplayTime: 0
 };
 
 import { debounce } from './utils.js';
@@ -80,6 +81,7 @@ window.hideTranscript = () => {
   transcriptManager.hideTranscript();
   transcriptManager.stopUpdateInterval();
 };
+window.toggleFollowScroll = transcriptManager.toggleFollowScroll.bind(transcriptManager);
 const getNextEpisode = () => {
   const episodePreviews = document.querySelectorAll('.episode-preview');
   if (!episodePreviews.length) return null;
