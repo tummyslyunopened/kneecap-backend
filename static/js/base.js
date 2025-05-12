@@ -113,18 +113,18 @@ const checkAutoplay = async () => {
 
 const logPlaybackTime = async () => {
   if (!audioPlayer) {
-    console.log('Audio Player not Found')
+    console.warn('Audio player not found when attempting to log playback time')
     return;
   }
   const currentTime = audioPlayer.getCurrentTime();
   if (typeof currentTime !== 'number' || isNaN(currentTime)) {
-    console.log('Invalid time:', currentTime);
+    console.warn('Invalid time detected for audioPlayer:', currentTime);
     return;
   }
   state.lastRecordedPlaybackTime = currentTime;
   if (Math.abs(currentTime - state.lastSentPlaybackTime) >= CONSTANTS.PLAYBACK_LOG_INTERVAL) {
     state.lastSentPlaybackTime = currentTime;
-    console.log('Sending time to API:', currentTime);
+    console.info('Sending time to API:', currentTime);
     ApiService.post(CONSTANTS.API_URLS.SET_PLAYBACK_TIME, currentTime);
   }
   await checkAutoplay();

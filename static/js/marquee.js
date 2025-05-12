@@ -17,7 +17,6 @@ export function addMarqueeEffect(element, maxWidth) {
   if (!element) return;
   removeMarqueeEffect(element);
   const titleWidth = element.offsetWidth;
-  console.log(titleWidth);
   if (titleWidth <= maxWidth) {
     return;
   }
