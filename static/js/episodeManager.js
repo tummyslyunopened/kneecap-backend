@@ -102,15 +102,15 @@ class EpisodeManager {
       }
     });
 
+    totalDuration -= Math.floor(state.currentTime)
+
     // Convert total seconds to HH:MM:SS format
     const hours = Math.floor(totalDuration / 3600);
-    // console.log(totalDuration)
-    // console.log(hours)
     const minutes = Math.floor((totalDuration % 3600) / 60);
-    const seconds = totalDuration % 60;
+    const seconds = Math.floor(totalDuration % 60);
 
     const formattedDuration = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    
+
     // Update the queue summary display
     const queueSummary = document.querySelector('.queue-summary h2');
     if (queueSummary) {

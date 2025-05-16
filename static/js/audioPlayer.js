@@ -174,7 +174,9 @@ class AudioPlayer {
   }
 
   getCurrentTime() {
-    return this.audio ? this.audio.currentTime : 0;
+    const currentTime = this.audio ? this.audio.currentTime : 0;
+    state.currentTime = currentTime;
+    return currentTime;
   }
 
   setTime(time) {

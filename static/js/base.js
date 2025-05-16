@@ -37,6 +37,7 @@ export const state = {
   currentTopEpisode: null,
   isPlaying: false,
   marqueeStyleSheet: null,
+  currentTime: 0,
   ...(document.getElementById('initial-playback-time') ? {
     lastRecordedPlaybackTime: parseFloat(document.getElementById('initial-playback-time').textContent) || 0,
     lastSentPlaybackTime: parseFloat(document.getElementById('initial-playback-time').textContent) || 0
@@ -61,6 +62,11 @@ const subscriptionManager = new SubscriptionManager();
 window.deleteSubscription = subscriptionManager.deleteSubscription.bind(subscriptionManager)
 
 const episodeManager = new EpisodeManager();
+window.updateQueueDuration = () => {
+  episodeManager.updateQueueDuration();
+  episodeManager.startUpdateInterval();
+}
+window.updateQueueDuration(); 
 window.hideEpisode = episodeManager.hideEpisode.bind(episodeManager);
 window.downloadEpisode = episodeManager.downloadEpisode.bind(episodeManager);
 window.playEpisode = episodeManager.playEpisode.bind(episodeManager);
@@ -93,7 +99,6 @@ const getNextEpisode = () => {
   return null;
 };
 
-episodeManager.updateQueueDuration();
 
 const checkAutoplay = async () => {
   if (!state.isAutoplayEnabled || !audioPlayer) {
