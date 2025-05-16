@@ -92,6 +92,9 @@ const getNextEpisode = () => {
   }
   return null;
 };
+
+episodeManager.updateQueueDuration();
+
 const checkAutoplay = async () => {
   if (!state.isAutoplayEnabled || !audioPlayer) {
     return;
@@ -132,6 +135,7 @@ const logPlaybackTime = async () => {
   await checkAutoplay();
 };
 
+setInterval(logPlaybackTime, 1);
 
 const handleScroll = debounce(() => {
   state.lastScrollTime = Date.now();
@@ -150,7 +154,6 @@ const handleScroll = debounce(() => {
     }
   }
 }, CONSTANTS.SCROLL_DEBOUNCE_TIME);
-setInterval(logPlaybackTime, 1);
 window.addEventListener('scroll', handleScroll);
 state.currentTopEpisode = findTopEpisodeElement();
 addMarqueeEffect(state.currentTopEpisode.querySelector('.episode-title'), CONSTANTS.MAX_EPISODE_TITLE_WIDTH);

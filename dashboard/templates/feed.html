@@ -11,6 +11,10 @@
       </div>
 
       <div id="episode-previews" class="episode-previews">
+        <div class="episode-preview mb-1 queue-summary" style="flex-direction: column; height: auto; max-height: none; min-height: auto;">
+          <h2 class="mt-2">00:00:00</h2>
+          <br>
+        </div>
         {% for episode in episodes %}
         <div class="episode-preview mb-1" id="{{episode.pk}}">
           <div class="image-container">
