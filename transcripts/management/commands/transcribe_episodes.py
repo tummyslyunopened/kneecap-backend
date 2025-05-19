@@ -1,4 +1,3 @@
-from typing import override
 from django.core.management.base import BaseCommand
 from subscriptions.models import Feed
 from transcripts.service import generate_transcript
@@ -10,7 +9,6 @@ from django.conf import settings
 class Command(BaseCommand):
     help = "Generate Transcripts for Each Episode with local audio files"
 
-    @override
     def handle(self, *args, **options):
         while True:
             episodes = (

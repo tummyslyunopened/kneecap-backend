@@ -1,4 +1,3 @@
-from typing import override
 import requests
 import time
 from django.core.management.base import BaseCommand
@@ -8,7 +7,6 @@ from django.conf import settings
 class Command(BaseCommand):
     help = "Test transcription service with provided audio file"
 
-    @override
     def add_arguments(self, parser):
         parser.add_argument("audio_file", type=str, help="Path to the audio file to transcribe")
 
@@ -83,7 +81,6 @@ class Command(BaseCommand):
         for segment in result["segments"]:
             print(f"[{segment['start']:.2f} - {segment['end']:.2f}]: {segment['text'].strip()}")
 
-    @override
     def handle(self, *args, **options):
         """Main command handler that orchestrates the transcription process."""
         audio_file_path = options["audio_file"]
