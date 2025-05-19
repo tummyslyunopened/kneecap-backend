@@ -90,7 +90,12 @@ class EpisodeModelTests(TestCase):
 
 class FeedModelTests(TestCase):
     def setUp(self):
-        self.feed = Feed.objects.create(chronological=True, cutoff_days=7)
+        # Get or create the singleton Feed instance
+        self.feed = Feed.get_solo()
+        self.feed.chronological = True
+        self.feed.cutoff_days = 7
+        self.feed.save()
+
         self.sub = Subscription.objects.create(link="http://test.com/rss")
         self.now = timezone.now()
 
