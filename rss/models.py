@@ -93,7 +93,7 @@ class RSSSubscription(Subscription):
         success, episode.audio_url = download_media_requests(
             episode.media_link, str(episode.uuid), media_path="episodes", default_file_ext=".mp3"
         )
-        episode.audio_url = episode.audio_url.replace(settings.SITE_URL.rstrip("/"), "")
+        episode.audio_url = str(episode.audio_url).replace(settings.SITE_URL.rstrip("/"), "")
         episode.save()
         return success, episode.audio_url
 

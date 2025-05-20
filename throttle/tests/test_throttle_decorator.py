@@ -13,6 +13,7 @@ class TempThrottleModel(models.Model):
     interval_combined = models.IntegerField(null=True)
     last_called_combined2 = models.DateTimeField(null=True, blank=True)
     interval_combined2 = models.IntegerField(null=True)
+    objects = models.Manager()
 
     @global_throttle("test_global_key", 5, 3)
     def global_throttled_method(self):

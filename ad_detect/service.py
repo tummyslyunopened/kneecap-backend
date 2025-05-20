@@ -3,6 +3,7 @@ import json
 from typing import List, Dict, Tuple
 import logging
 from pathlib import Path
+from requests.exceptions import RequestException
 from transcripts.models import TranscriptSegment
 from kneecap.settings import LLM_ENDPOINT
 
@@ -112,7 +113,7 @@ class AdDetectionService:
                     f"Failed to get response. Status code: {response.status_code}, Error: {response.text}"
                 )
 
-        except requests.exceptions.RequestException as e:
+        except RequestException as e:
             logger.error(f"Request failed: {str(e)}")
 
         return success, ad_detected

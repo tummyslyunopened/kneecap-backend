@@ -2,6 +2,7 @@ import requests
 import time
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from requests.exceptions import RequestException
 
 
 class Command(BaseCommand):
@@ -38,7 +39,7 @@ class Command(BaseCommand):
                 print(f"\nTranscription job started with ID: {job_id}")
                 return job_id
 
-            except requests.exceptions.RequestException as e:
+            except RequestException as e:
                 print(f"\nError starting transcription: {str(e)}")
                 return None
 
@@ -64,7 +65,7 @@ class Command(BaseCommand):
                 retry_count += 1
                 time.sleep(5)
 
-            except requests.exceptions.RequestException as e:
+            except RequestException as e:
                 print(f"\nError during polling: {str(e)}")
                 return None
 

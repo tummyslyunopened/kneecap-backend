@@ -7,6 +7,7 @@ from tools.models import TimeStampedModel
 from django.conf import settings
 import os
 from ffmpeg import FFmpeg
+from django.core.exceptions import ObjectDoesNotExist
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +32,7 @@ class Subscription(TimeStampedModel):
             episode = self.episodes.latest("pub_date")
             self.recent_episode_pub_date = episode.pub_date
             return episode
-
-        except Episode.DoesNotExist:
+        except ObjectDoesNotExist:
             return None
 
     @property

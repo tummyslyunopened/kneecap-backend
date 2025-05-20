@@ -1,4 +1,3 @@
-from typing import override
 from django.core.management.base import BaseCommand
 import logging
 import time
@@ -10,7 +9,6 @@ from tools.constants import HOUR_SECONDS
 class Command(BaseCommand):
     help = "Downloads missing media for all RSS subscriptions."
 
-    @override
     def handle(self, *args, **options):
         logger = logging.getLogger("rss.management.commands.download_media")
         self.stdout.write("Starting RSS Entry Media Downloader...")

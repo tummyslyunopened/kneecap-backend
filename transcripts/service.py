@@ -1,4 +1,5 @@
 import requests
+from requests.exceptions import RequestException
 from django.conf import settings
 import logging
 import time
@@ -38,7 +39,7 @@ def start_transcription(audio_file_path):
             logger.info(f"\nTranscription job started with ID: {job_id}")
             return job_id
 
-        except requests.exceptions.RequestException as e:
+        except RequestException as e:
             logger.info(f"\nError starting transcription: {str(e)}")
             return None
 
@@ -65,7 +66,7 @@ def poll_job_status(job_id, max_retries=120):
             retry_count += 1
             time.sleep(5)
 
-        except requests.exceptions.RequestException as e:
+        except RequestException as e:
             logger.info(f"\nError during polling: {str(e)}")
             return None
 
@@ -121,7 +122,7 @@ def generate_transcript(episode: Episode):
     """Generate transcript for an episode and save both JSON and database records.
     Uses low quality audio file if available for more efficient transcription."""
     logger.info(f"Generating Transcript for episode {episode.title}")
-    
+
     # Try to use low quality audio file if available
     if episode.low_quality_audio_url:
         logger.info("Using low quality audio file for transcription")
@@ -129,7 +130,7 @@ def generate_transcript(episode: Episode):
     else:
         logger.info("Using original audio file for transcription")
         audio_path = episode.derive_audio_file_path
-    
+
     job_id = start_transcription(audio_path)
     if not job_id:
         return False
