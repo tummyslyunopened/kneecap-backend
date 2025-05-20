@@ -1,3 +1,4 @@
+from typing import Any
 from .models import GlobalThrottle
 from datetime import timedelta
 from django.utils import timezone
@@ -12,7 +13,7 @@ def global_throttle(
     default_interval,
     min_allowed_interval,
     wait_on_throttled=False,
-    return_on_throttled=None,
+    return_on_throttled: Any = None,
 ):
     def decorator(func):
         def wrapper(self, *args, **kwargs):
@@ -54,7 +55,7 @@ def model_instance_throttle(
     default_interval,
     min_allowed_interval,
     wait_on_throttled=False,
-    return_on_throttled=None,
+    return_on_throttled: Any = None,
 ):
     """
     Decorator to throttle method calls per model instance.
