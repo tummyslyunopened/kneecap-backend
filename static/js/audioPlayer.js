@@ -1,5 +1,9 @@
 import { CONSTANTS, state } from './base.js';
+import ApiService from './apiService.js';
 
+/**
+ * AudioPlayer class handles all audio playback functionality
+ */
 class AudioPlayer {
   constructor() {
     this.audio = document.getElementById('player-audio');
@@ -12,65 +16,64 @@ class AudioPlayer {
     this.errorCount = 0;
     this.maxRetries = 3;
     this.lastSeekTime = 0;
-    this.lastMemoryCheck = 0;
-    this.memoryCheckInterval = 30000; // 30 seconds
-    this.memoryUsageHistory = [];
+    this.updateInterval = null;
+    
     this.bindEvents();
     this.setupKeyboardShortcuts();
-    this.startMemoryMonitoring();
   }
-
-  startMemoryMonitoring() {
-    // Start memory monitoring every 30 seconds
-    setInterval(() => this.checkMemoryUsage(), this.memoryCheckInterval);
+  
+  /**
+   * Start the update interval for playback time logging
+   */
+  startUpdateInterval() {
+    this.updateInterval = setInterval(() => {
+      if (this.audio && !this.audio.paused) {
+        this.logPlaybackTime();
+      }
+    }, 100); // Update every 100ms for smoother progress updates
   }
-
-  checkMemoryUsage() {
-    if (!performance || !performance.memory) return;
-    
-    const now = Date.now();
-    if (now - this.lastMemoryCheck < this.memoryCheckInterval) return;
-    this.lastMemoryCheck = now;
-
-    const memory = {
-      timestamp: now,
-      usedJSHeapSize: performance.memory.usedJSHeapSize,
-      totalJSHeapSize: performance.memory.totalJSHeapSize,
-      jsHeapSizeLimit: performance.memory.jsHeapSizeLimit
-    };
-
-    this.memoryUsageHistory.push(memory);
-    if (this.memoryUsageHistory.length > 10) {
-      this.memoryUsageHistory.shift(); // Keep only last 10 measurements
-    }
-
-    // Log memory stats if they're getting too high
-    const usedPercentage = (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100;
-    if (usedPercentage > 80) {
-      console.warn('High memory usage detected:', memory);
-      this.logMemoryHistory();
+  
+  /**
+   * Stop the update interval
+   */
+  stopUpdateInterval() {
+    if (this.updateInterval) {
+      clearInterval(this.updateInterval);
+      this.updateInterval = null;
     }
   }
-
-  logMemoryHistory() {
-    console.log('Memory usage history (last 10 measurements):');
-    this.memoryUsageHistory.forEach((mem, index) => {
-      const usedPercentage = (mem.usedJSHeapSize / mem.jsHeapSizeLimit) * 100;
-      console.log(`[${index}] Time: ${new Date(mem.timestamp).toLocaleTimeString()}, ` +
-                 `Used: ${Math.round(usedPercentage)}% (${Math.round(mem.usedJSHeapSize / 1024 / 1024)}MB)`);
-    });
-  }
+  
 
   bindEvents() {
+    // Playback controls
     this.playButton?.addEventListener('click', () => this.togglePlay());
     this.progressContainer?.addEventListener('click', (e) => this.seek(e));
     this.progressHandle?.addEventListener('mousedown', this.startDrag.bind(this));
-    this.audio?.addEventListener('timeupdate', () => this.updateProgress());
-    this.audio?.addEventListener('play', () => this.updatePlayState(true));
-    this.audio?.addEventListener('pause', () => this.updatePlayState(false));
-    this.audio?.addEventListener('ended', () => this.updatePlayState(false));
-    this.audio?.addEventListener('error', (e) => this.handleError(e));
-    this.audio?.addEventListener('seeked', () => this.handleSeek());
+    
+    // Audio element events
+    const events = [
+      ['timeupdate', () => this.updateProgress()],
+      ['play', () => {
+        this.updatePlayState(true);
+        this.startUpdateInterval();
+      }],
+      ['pause', () => {
+        this.updatePlayState(false);
+        this.stopUpdateInterval();
+      }],
+      ['ended', () => {
+        this.updatePlayState(false);
+        this.stopUpdateInterval();
+      }],
+      ['error', (e) => this.handleError(e)],
+      ['seeked', () => this.handleSeek()]
+    ];
+    
+    events.forEach(([event, handler]) => {
+      this.audio?.addEventListener(event, handler);
+    });
+    
+    // Navigation controls
     document.querySelector('.skip-forward')?.addEventListener('click', () => this.skip(CONSTANTS.SKIP_TIME));
     document.querySelector('.skip-backward')?.addEventListener('click', () => this.skip(-CONSTANTS.SKIP_TIME));
   }
@@ -218,8 +221,40 @@ class AudioPlayer {
     if (!this.audio) return;
     this.audio.volume = Math.max(0, Math.min(1, this.audio.volume + delta));
   }
+
+  /**
+   * Logs the current playback time to the server
+   * @private
+   */
+  async logPlaybackTime() {
+    if (!this.audio) {
+      console.warn('Audio player not found when attempting to log playback time');
+      return;
+    }
+    
+    const currentTime = this.audio.currentTime;
+    if (typeof currentTime !== 'number' || isNaN(currentTime)) {
+      console.warn('Invalid time detected for audioPlayer:', currentTime);
+      return;
+    }
+    
+    state.lastRecordedPlaybackTime = currentTime;
+    
+    if (Math.abs(currentTime - state.lastSentPlaybackTime) >= CONSTANTS.PLAYBACK_LOG_INTERVAL) {
+      state.lastSentPlaybackTime = currentTime;
+      console.info('Sending time to API:', currentTime);
+      
+      // Use silent mode to suppress toast notifications
+      await ApiService.post(
+        CONSTANTS.API_URLS.SET_PLAYBACK_TIME, 
+        currentTime,
+        { 
+          showSuccess: false, 
+          showError: true,
+        }
+      );
+    }
+  }
 }
-
-
 
 export default AudioPlayer;

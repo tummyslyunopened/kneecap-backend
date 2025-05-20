@@ -50,7 +50,6 @@ export const state = {
 
 import { debounce } from './utils.js';
 import { findTopEpisodeElement } from './uiMeasure.js';
-import ApiService from './apiService.js';
 import AudioPlayer from './audioPlayer.js';
 import EpisodeManager from './episodeManager.js';
 import SubscriptionManager from './subscriptionManager.js';
@@ -100,47 +99,34 @@ const getNextEpisode = () => {
 };
 
 
+// Check if we should autoplay the next episode
 const checkAutoplay = async () => {
-  if (!state.isAutoplayEnabled || !audioPlayer) {
-    return;
+  if (!state.isAutoplayEnabled || !audioPlayer || !audioPlayer.audio) {
+    return false;
   }
+  
   const timeSinceLastAutoplay = Date.now() - state.lastAutoplayTime;
   if (timeSinceLastAutoplay < CONSTANTS.AUTOCOOLDOWN) {
-    return;
+    return false;
   }
+  
   const currentTime = audioPlayer.getCurrentTime();
   const duration = audioPlayer.audio.duration;
+  
   if (duration - currentTime <= CONSTANTS.AUTOPLAY_THRESHOLD) {
     const nextEpisodeId = getNextEpisode();
     if (nextEpisodeId) {
-      const currentEpisodeId = document.getElementById('player-id').textContent.trim();
-      await window.hideEpisode(currentEpisodeId);
+      const currentEpisodeId = document.getElementById('player-id')?.textContent.trim();
+      if (currentEpisodeId) {
+        await window.hideEpisode(currentEpisodeId);
+      }
       await window.playEpisode(nextEpisodeId);
       state.lastAutoplayTime = Date.now();
+      return true;
     }
   }
+  return false;
 };
-
-const logPlaybackTime = async () => {
-  if (!audioPlayer) {
-    console.warn('Audio player not found when attempting to log playback time')
-    return;
-  }
-  const currentTime = audioPlayer.getCurrentTime();
-  if (typeof currentTime !== 'number' || isNaN(currentTime)) {
-    console.warn('Invalid time detected for audioPlayer:', currentTime);
-    return;
-  }
-  state.lastRecordedPlaybackTime = currentTime;
-  if (Math.abs(currentTime - state.lastSentPlaybackTime) >= CONSTANTS.PLAYBACK_LOG_INTERVAL) {
-    state.lastSentPlaybackTime = currentTime;
-    console.info('Sending time to API:', currentTime);
-    ApiService.post(CONSTANTS.API_URLS.SET_PLAYBACK_TIME, currentTime);
-  }
-  await checkAutoplay();
-};
-
-setInterval(logPlaybackTime, 1);
 
 const handleScroll = debounce(() => {
   state.lastScrollTime = Date.now();
@@ -163,6 +149,7 @@ window.addEventListener('scroll', handleScroll);
 state.currentTopEpisode = findTopEpisodeElement();
 addMarqueeEffect(state.currentTopEpisode.querySelector('.episode-title'), CONSTANTS.MAX_EPISODE_TITLE_WIDTH);
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize episode preview marquees
   const previews = document.querySelectorAll('.episode-preview');
   previews.forEach(preview => {
     const title = preview.querySelector('.episode-title');
