@@ -13,6 +13,7 @@ from dashboard.views import (
     hide_episode,
     play_episode,
     toggle_feed_chronological,
+    update_feed_filter_preferences,
     toggle_feed_autoplay,
     set_episode_playback_time,
 )
@@ -39,6 +40,11 @@ urlpatterns = [
         "toggle-feed-chronological",
         toggle_feed_chronological,
         name="toggle_feed_chronological",
+    ),
+    path(
+        "update-feed-filter-preferences",
+        update_feed_filter_preferences,
+        name="update_feed_filter_preferences",
     ),
     path(
         "toggle-feed-autoplay",

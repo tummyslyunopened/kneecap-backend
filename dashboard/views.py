@@ -37,7 +37,7 @@ def play_episode(request, pk):
 
 def set_episode_playback_time(request):
     if request.method == "POST":
-        playback_time = request.POST["data"]
+        playback_time = request.POST.get("currentTime")
         player = Player.get_solo()
         player.episode.playback_time = float(playback_time)
         player.episode.save()
@@ -49,6 +49,22 @@ def toggle_feed_chronological(request):
     if request.method == "POST":
         feed = Feed.get_solo()
         feed.chronological = not feed.chronological
+        feed.save()
+    return HttpResponse("<script>history.back();</script>")
+
+
+def update_feed_filter_preferences(request):
+    if request.method == "POST":
+        feed = Feed.get_solo()
+        # Convert string 'true'/'false' to boolean
+        has_audio = request.POST.get("has_audio", "false").lower()
+        feed.has_audio = has_audio == 'true'
+        
+        has_transcript = request.POST.get("has_transcript", "false").lower()
+        feed.has_transcript = has_transcript == 'true'
+        
+        feed.min_duration = int(request.POST.get("min_duration", 0))
+        logger.warning(f"Updated feed preferences - has_audio: {feed.has_audio}, has_transcript: {feed.has_transcript}, min_duration: {feed.min_duration}")
         feed.save()
     return HttpResponse("<script>history.back();</script>")
 

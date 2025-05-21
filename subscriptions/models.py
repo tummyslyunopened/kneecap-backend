@@ -218,20 +218,43 @@ class Episode(TimeStampedModel):
 
 
 class Feed(SingletonModel):
+    # Base preferences
     chronological = models.BooleanField(default=False)
     view_hidden = models.BooleanField(default=False)
     autoplay_enabled = models.BooleanField(default=True)
     cutoff_days = models.IntegerField(default=7)
 
+    # Filter preferences
+    min_duration = models.PositiveIntegerField(
+        "Minimum Duration (seconds)",
+        null=True,
+        blank=True,
+        help_text="Only show episodes longer than this duration in seconds",
+    )
+    has_transcript = models.BooleanField(
+        "Has Transcript",
+        default=False,
+        help_text="Filter by whether episodes have a transcript (leave blank for any)",
+    )
+    has_audio = models.BooleanField(
+        "Has Audio",
+        default=False,
+        help_text="Filter by whether episodes have a local audio file (leave blank for any)",
+    )
+
     @property
     def order_string_pref(self):
         if self.chronological:
-            return "-"
-        else:
             return ""
+        else:
+            return "-"
 
     @property
     def episodes(self):
+        """
+        Get episodes with basic filtering by publication date and hidden status.
+        Preserves the original behavior for backward compatibility.
+        """
         return Episode.objects.filter(
             pub_date__gte=datetime.now() - timedelta(days=self.cutoff_days),
             hidden=(False or self.view_hidden),
