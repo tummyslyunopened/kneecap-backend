@@ -247,7 +247,7 @@ class AudioPlayer {
       // Use silent mode to suppress toast notifications
       await ApiService.post(
         CONSTANTS.API_URLS.SET_PLAYBACK_TIME, 
-        currentTime,
+        {'currentTime': currentTime},
         { 
           showSuccess: false, 
           showError: true,
