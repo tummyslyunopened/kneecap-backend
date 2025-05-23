@@ -102,7 +102,7 @@ class EpisodeManager {
       }
     });
 
-    totalDuration -= Math.floor(state.currentTime)
+    totalDuration -= Math.floor(state.lastRecordedPlaybackTime)
 
     // Convert total seconds to HH:MM:SS format
     const hours = Math.floor(totalDuration / 3600);
