@@ -44,7 +44,8 @@ export const state = {
   transcript_visible: false,
   isFollowScroll: true,
   isAutoplayEnabled: document.getElementById('autoplay-toggle')?.checked || false,
-  lastAutoplayTime: 0
+  lastAutoplayTime: 0,
+  playbackRate: 1.0
 };
 
 import { debounce } from './utils.js';

@@ -92,7 +92,6 @@ class EpisodeManager {
     durationElements.forEach(element => {
       // Find the duration string (starts with ⏲️)
       const durationStr = element.textContent.split('⏲️')[1]?.trim();
-      // console.log(durationStr)
       if (durationStr && durationStr !== '0') {
         const [hours, minutes, seconds] = durationStr.split(':').map(str => {
           const num = Number(str);
@@ -102,7 +101,14 @@ class EpisodeManager {
       }
     });
 
-    totalDuration -= Math.floor(state.lastRecordedPlaybackTime)
+    // Adjust for current playback position
+    totalDuration -= Math.floor(state.lastRecordedPlaybackTime);
+    
+    // Adjust for playback rate (if not 1.0)
+    const playbackRate = state.playbackRate || 1.0; // Default to 1.0 if not set
+    if (playbackRate > 0 && playbackRate !== 1.0) {
+      totalDuration = Math.max(0, Math.floor(totalDuration / playbackRate));
+    }
 
     // Convert total seconds to HH:MM:SS format
     const hours = Math.floor(totalDuration / 3600);

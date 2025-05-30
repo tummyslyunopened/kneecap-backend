@@ -238,16 +238,21 @@ class AudioPlayer {
       return;
     }
     
+    // Update playback rate in state
+    state.playbackRate = this.audio.playbackRate;
     state.lastRecordedPlaybackTime = currentTime;
     
     if (Math.abs(currentTime - state.lastSentPlaybackTime) >= CONSTANTS.PLAYBACK_LOG_INTERVAL) {
       state.lastSentPlaybackTime = currentTime;
-      console.info('Sending time to API:', currentTime);
+      console.info('Current playback:', {
+        time: currentTime,
+        rate: state.playbackRate
+      });
       
       // Use silent mode to suppress toast notifications
       await ApiService.post(
         CONSTANTS.API_URLS.SET_PLAYBACK_TIME, 
-        {'currentTime': currentTime},
+        { 'currentTime': currentTime },
         { 
           showSuccess: false, 
           showError: true,
