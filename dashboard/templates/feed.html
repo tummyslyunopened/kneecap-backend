@@ -87,13 +87,19 @@
           </div>
 
 
-          <div class="controls">
-            <p class="player-text mt-2">
-              {{ player_episode.subscription.title|slice:":40" }}
-              <br />{{player_episode.title|slice:":40"}}
-              <span id="player-id" style="display: none;">{{player_episode.pk}}</span>
-            </p>
-            <div class="player-controls-group">
+          <div class="player-info" style="width: 100%; overflow: hidden;">
+            <div style="text-align: center; width: 100%;">
+              <p class="player-text mb-1" style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden; text-align: center; margin: 0.5rem 0;">
+                <strong>{{ player_episode.subscription.title }}</strong>
+              </p>
+              <p class="player-text mb-2" style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden; text-align: center; margin: 0.5rem 0;">
+                {{ player_episode.title }}
+                <span id="player-id" style="display: none;">{{player_episode.pk}}</span>
+              </p>
+            </div>
+          </div>
+          <div class="controls" style="justify-content: center; gap: 2rem;">
+            <div class="player-controls-group" style="display: flex; align-items: center; gap: 1.5rem;">
               <div class="player-button skip-backward">
                 <svg role="img" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
                   aria-labelledby="historyIconTitle" stroke="#9b51e0" stroke-width="1.8" stroke-linecap="square"
