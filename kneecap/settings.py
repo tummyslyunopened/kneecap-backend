@@ -75,6 +75,7 @@ INSTALLED_APPS = [
     "player",
     "transcripts",
     "ad_detect",
+    "feeds",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -130,6 +131,11 @@ LOGGING = {
             "propagate": False,
         },
         "subscriptions": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "rss": {
             "handlers": ["console"],
             "level": "INFO",
             "propagate": False,

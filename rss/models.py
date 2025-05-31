@@ -14,16 +14,24 @@ import logging
 
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 class RSSSubscription(Subscription):
     def save(self, *args, **kwargs):
         if self.id is None:
+            logger.info(f"Creating new RSSSubscription with link: {self.link}")
             self.rss_url = self.download_rss()[1]
             self.title, self.description, self.image_link = parse_rss_feed_info(self.link)
             self.image_url = self.download_image()[1]
             self.populate_recent_episodes()
             logger.info("\n".join(f"{k} = {v}" for k, v in self.__dict__.items()))
+        else:
+            logger.info(f"Updating existing RSSSubscription with ID: {self.id}")
         super(RSSSubscription, self).save(*args, **kwargs)
 
     def refresh(self):

@@ -92,6 +92,9 @@ def subscriptions(request):
         if add_subscription_form.is_valid():
             rss_subscription = add_subscription_form.save(commit=False)
             rss_subscription.save()
+            logger.info(f"Subscription added successfully: {rss_subscription}")
+        else:
+            logger.warning(f"Subscription form is invalid: {add_subscription_form.errors}")
         return HttpResponseRedirect("/subscriptions")
     else:
         add_subscription_form = RSSSubscriptionForm()

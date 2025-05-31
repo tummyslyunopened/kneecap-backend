@@ -19,6 +19,7 @@ dependencies = [
     "defusedxml>=0.7.1",
     "reader>=3.17",
     "python-ffmpeg>=2.0.12",
+    "tqdm>=4.67.1",
 ]
 
 

@@ -7,7 +7,8 @@ class RSSSubscriptionForm(forms.ModelForm):
         model = RSSSubscription
         fields = ["link"]
 
-    link = forms.URLField(
+    # link = forms.URLField(
+    link = forms.CharField(
         label="RSS Feed Link",
         required=True,
         widget=forms.URLInput(attrs={"placeholder": "Enter RSS feed URL"}),
