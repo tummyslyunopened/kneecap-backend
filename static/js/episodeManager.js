@@ -63,8 +63,18 @@ class EpisodeManager {
       const container = safeGetElement('episode-previews');
       if (container) {
         const children = Array.from(container.children);
-        container.innerHTML = '';
-        children.reverse().forEach(child => container.appendChild(child));
+        if (children.length > 1) {
+          // Keep first episode aside
+          const firstEpisode = children[0];
+          const remainingEpisodes = children.slice(1);
+          
+          // Clear container and add back first episode
+          container.innerHTML = '';
+          container.appendChild(firstEpisode);
+          
+          // Add remaining episodes in reverse order
+          remainingEpisodes.reverse().forEach(child => container.appendChild(child));
+        }
         window.scrollTo(0, 0);
         state.lastScrollTime = Date.now() + 5000;
         this.updateQueueDuration();
