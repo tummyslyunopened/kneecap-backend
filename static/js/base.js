@@ -61,6 +61,21 @@ import { TranscriptManager } from './transcriptManager.js';
 const subscriptionManager = new SubscriptionManager();
 window.deleteSubscription = subscriptionManager.deleteSubscription.bind(subscriptionManager)
 
+// Add toggleMenu to window object
+window.toggleMenu = () => {
+  const menuContent = document.getElementById('menu-content');
+  menuContent.classList.toggle('show');
+  
+  // Close the menu when clicking outside
+  const closeMenu = (e) => {
+    if (!e.target.matches('.menu-btn')) {
+      menuContent.classList.remove('show');
+      document.removeEventListener('click', closeMenu);
+    }
+  };
+  document.addEventListener('click', closeMenu);
+};
+
 const episodeManager = new EpisodeManager();
 window.updateQueueDuration = () => {
   episodeManager.updateQueueDuration();

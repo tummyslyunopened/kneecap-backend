@@ -5,15 +5,23 @@
   <div style="display: flex; flex-direction: row;">
     <div class="feed-col">
       <div class="sticky-header">
-        <button type="button" class="btn btn-danger" onclick="hideAll()">Hide All</button>
-        <button type="button" class="btn btn-primary" onclick="toggleChron()">Toggle Chron</button>
-        <a href="/subscriptions" class="btn btn-secondary">Subscriptions</a>
+        <div class="hamburger-menu">
+          <button class="menu-btn" onclick="toggleMenu()">☰</button>
+          <div class="menu-content" id="menu-content">
+            <a href="/subscriptions" class="menu-item">Subscriptions</a>
+          </div>
+        </div>
       </div>
 
       <div id="episode-previews" class="episode-previews">
         <div class="episode-preview mb-1 queue-summary" style="flex-direction: column; height: auto; max-height: none; min-height: auto;">
           <h2 class="mt-2">00:00:00</h2>
           <br>
+          <div style="display: flex; flex-direction: row;">
+            <button type="button" class="btn btn-primary" onclick="toggleChron()">Toggle Chron</button>
+            <button type="button" class="btn btn-danger" onclick="hideAll()">Hide All</button>
+         </div>
+
         </div>
         {% for episode in episodes %}
         <div class="episode-preview mb-1" id="{{episode.pk}}">
