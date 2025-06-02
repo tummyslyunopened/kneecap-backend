@@ -237,13 +237,23 @@ class AudioPlayer {
       console.warn('Invalid time detected for audioPlayer:', currentTime);
       return;
     }
+
+    const hasBeenPlaying = state.isPlaying && state.lastRecordedIsPlaying;
+    const hasActuallyChanged = currentTime !== state.lastRecordedPlaybackTime;
+
+    if (hasBeenPlaying && !hasActuallyChanged) {
+      console.warn('Suspected Failure to load remote adudio File. Playback is not changing over last log period.');
+      return;
+    }
     
     // Update playback rate in state
     state.playbackRate = this.audio.playbackRate;
     state.lastRecordedPlaybackTime = currentTime;
+
     
     if (Math.abs(currentTime - state.lastSentPlaybackTime) >= CONSTANTS.PLAYBACK_LOG_INTERVAL) {
       state.lastSentPlaybackTime = currentTime;
+      state.lastRecordedIsPlaying = state.isPlaying;
       console.info('Current playback:', {
         time: currentTime,
         rate: state.playbackRate

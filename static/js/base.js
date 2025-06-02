@@ -36,6 +36,7 @@ export const state = {
   lastTopEpisode: null,
   currentTopEpisode: null,
   isPlaying: false,
+  lastRecordedIsPlaying: false,
   marqueeStyleSheet: null,
   ...(document.getElementById('initial-playback-time') ? {
     lastRecordedPlaybackTime: parseFloat(document.getElementById('initial-playback-time').textContent) || 0,
