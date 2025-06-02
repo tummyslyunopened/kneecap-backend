@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     "transcripts",
     "ad_detect",
     "feeds",
+    "timeline",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
