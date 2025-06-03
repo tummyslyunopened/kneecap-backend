@@ -57,6 +57,7 @@ import SubscriptionManager from './subscriptionManager.js';
 import { scrollToCurrentTopEpisode } from './uxSugar.js';
 import { addMarqueeEffect, removeMarqueeEffect } from './marquee.js';
 import { TranscriptManager } from './transcriptManager.js';
+import { isMobileDevice } from './mobile.js';
 
 const subscriptionManager = new SubscriptionManager();
 window.deleteSubscription = subscriptionManager.deleteSubscription.bind(subscriptionManager)
@@ -176,4 +177,26 @@ document.addEventListener('DOMContentLoaded', () => {
       removeMarqueeEffect(title, CONSTANTS.MAX_EPISODE_TITLE_WIDTH);
     });
   });
+
+  // Mobile-specific logic
+  if (isMobileDevice()) {
+    const stickyFooterElems = document.querySelectorAll('.sticky-footer');
+    stickyFooterElems.forEach(elem => {
+      elem.classList.add('sticky-footer-mobile');
+      elem.classList.remove('sticky-footer');
+    });
+    const stickyHeaderElems = document.querySelectorAll('.sticky-header');
+    stickyHeaderElems.forEach(elem => {
+      elem.classList.add('sticky-header-mobile');
+      elem.classList.remove('sticky-header');
+    });
+    const queueSummaryElems = document.querySelectorAll('.queue-summary');
+    queueSummaryElems.forEach(elem => {
+      elem.classList.add('queue-summary-mobile');
+      elem.classList.remove('queue-summary');
+    });
+    // Disable horizontal scrolling
+    document.body.style.overflowX = 'hidden';
+    document.documentElement.style.overflowX = 'hidden';
+  }
 });

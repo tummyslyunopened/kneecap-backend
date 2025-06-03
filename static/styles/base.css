@@ -4,7 +4,7 @@
 }
 
 .feed-col {
-  max-width: 516px;
+  width: 100vw;
 }
 
 .image-container {
@@ -27,7 +27,6 @@
 }
 
 .transcript-col {
-  width: 100%;
   z-index: 1;
   background-color: white;
 }
@@ -36,8 +35,16 @@
   position: sticky;
   bottom: 0;
   left: 0;
-  width: 100%;
-  max-width: 540px;
+  width: 100vw;
+  z-index: 9999;
+
+}
+
+.sticky-footer-mobile {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
   z-index: 9999;
 }
 
@@ -53,7 +60,25 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   white-space: nowrap;
   word-break: normal;
+  width: 100vw;
 }
+
+.sticky-header-mobile {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  padding: 5px;
+  display: flex;
+  justify-content: space-between;
+  z-index: 9999;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  word-break: normal;
+  background-color: #1b1340;
+  color: white;
+}
+
 .episode-buttons {
     display: flex;
     gap: 8px;
@@ -153,7 +178,6 @@
     color: white;
     padding: 10px;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
   }
   
   .player-button {
@@ -300,13 +324,9 @@
     align-items: center;
     justify-content: space-between;
     overflow: hidden;
-    min-width: 330px;
-    max-width: 330px;
-
 }
 
 .subscriptions-col {
-    max-width: 516px;
 }
 .transcript-container {
     display: none;
@@ -322,4 +342,11 @@
 }
 .suspected-advertisement {
     color: red;
+}
+
+.queue-summary {
+
+}
+.queue-summary-mobile {
+  padding-top: 50px;
 }
