@@ -21,6 +21,12 @@
             <button type="button" class="btn btn-primary" onclick="toggleChron()">Toggle Chron</button>
             <button type="button" class="btn btn-danger" onclick="hideAll()">Hide All</button>
          </div>
+         <div class="mt-2">
+            <label for="min-duration" style="margin-right: 0.5rem;">Min Duration (min):</label>
+            <input type="number" id="min-duration" name="min-duration" min="0" value="0" style="width: 5rem; margin-right: 1rem;" onchange="filterByMinDuration()">
+            <label for="enable-min-duration" style="margin-right: 1rem;">Enable</label>
+            <input type="checkbox" id="enable-min-duration" name="enable-min-duration" style="margin-right: 0.5rem;" onchange="filterByMinDuration()" checked>
+         </div>
 
         </div>
         {% for episode in episodes %}
@@ -36,6 +42,7 @@
               <div class="episode-info">
                 📅{{ episode.pub_date|date:"m/d" }}
                 ⏲️{{ episode.duration_str|default:"0" }}
+                <span class="episode-duration" style="display: none;">{{ episode.duration }}</span>
                 <a href="{{episode.media_link}}" class="btn-link">Source</a>
                 {% if episode.audio_url %}
                 <a href="{{episode.audio_url}}" class="btn-link">Audio</a>
