@@ -58,13 +58,15 @@ def update_feed_filter_preferences(request):
         feed = Feed.get_solo()
         # Convert string 'true'/'false' to boolean
         has_audio = request.POST.get("has_audio", "false").lower()
-        feed.has_audio = has_audio == 'true'
-        
+        feed.has_audio = has_audio == "true"
+
         has_transcript = request.POST.get("has_transcript", "false").lower()
-        feed.has_transcript = has_transcript == 'true'
-        
+        feed.has_transcript = has_transcript == "true"
+
         feed.min_duration = int(request.POST.get("min_duration", 0))
-        logger.warning(f"Updated feed preferences - has_audio: {feed.has_audio}, has_transcript: {feed.has_transcript}, min_duration: {feed.min_duration}")
+        logger.warning(
+            f"Updated feed preferences - has_audio: {feed.has_audio}, has_transcript: {feed.has_transcript}, min_duration: {feed.min_duration}"
+        )
         feed.save()
     return HttpResponse("<script>history.back();</script>")
 
@@ -106,9 +108,21 @@ def subscriptions(request):
 
 
 def feed(request):
+    if request.method == "POST":
+        add_subscription_form = RSSSubscriptionForm(request.POST)
+        if add_subscription_form.is_valid():
+            rss_subscription = add_subscription_form.save(commit=False)
+            rss_subscription.save()
+            logger.info(f"Subscription added successfully: {rss_subscription}")
+        else:
+            logger.warning(f"Subscription form is invalid: {add_subscription_form.errors}")
+        return HttpResponseRedirect("/")
+    else:
+        add_subscription_form = RSSSubscriptionForm()
     context = {
         "episodes": Feed.get_solo().episodes,
         "player_episode": Player.get_solo().episode,
         "feed": Feed.get_solo(),
+        "add_subscription_form": add_subscription_form,
     }
     return render(request, "feed.html", context=context)

@@ -11,23 +11,32 @@
             <a href="/subscriptions" class="menu-item">Subscriptions</a>
           </div>
         </div>
+          <form method="POST" class="subscription-form-row">
+            {% csrf_token %}
+            <div class="subscription-form-fields">
+              {{ add_subscription_form }}
+            </div>
+            <button type="submit" class="btn btn-primary">Create</button>
+          </form>
       </div>
 
       <div id="episode-previews" class="episode-previews">
-        <div class="episode-preview mb-1 queue-summary" style="flex-direction: column; height: auto; max-height: none; min-height: auto;">
+        <div class="episode-preview mb-1 queue-summary"
+          style="flex-direction: column; height: auto; max-height: none; min-height: auto;">
           <h2 class="mt-2">00:00:00</h2>
           <br>
           <div style="display: flex; flex-direction: row;">
             <button type="button" class="btn btn-primary" onclick="toggleChron()">Toggle Chron</button>
             <button type="button" class="btn btn-danger" onclick="hideAll()">Hide All</button>
-         </div>
-         <div class="mt-2">
+          </div>
+          <div class="mt-2">
             <label for="min-duration" style="margin-right: 0.5rem;">Min Duration (min):</label>
-            <input type="number" id="min-duration" name="min-duration" min="0" value="0" style="width: 5rem; margin-right: 1rem;" onchange="filterByMinDuration()">
+            <input type="number" id="min-duration" name="min-duration" min="0" value="0"
+              style="width: 5rem; margin-right: 1rem;" onchange="filterByMinDuration()">
             <label for="enable-min-duration" style="margin-right: 1rem;">Enable</label>
-            <input type="checkbox" id="enable-min-duration" name="enable-min-duration" style="margin-right: 0.5rem;" onchange="filterByMinDuration()" checked>
-         </div>
-
+            <input type="checkbox" id="enable-min-duration" name="enable-min-duration" style="margin-right: 0.5rem;"
+              onchange="filterByMinDuration()" checked>
+          </div>
         </div>
         {% for episode in episodes %}
         <div class="episode-preview mb-1" id="{{episode.pk}}">
@@ -104,10 +113,12 @@
 
           <div class="player-info" style="width: 100%; overflow: hidden;">
             <div style="text-align: center; width: 100%;">
-              <p class="player-text mb-1" style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden; text-align: center; margin: 0.5rem 0;">
+              <p class="player-text mb-1"
+                style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden; text-align: center; margin: 0.5rem 0;">
                 <strong>{{ player_episode.subscription.title }}</strong>
               </p>
-              <p class="player-text mb-2" style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden; text-align: center; margin: 0.5rem 0;">
+              <p class="player-text mb-2"
+                style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden; text-align: center; margin: 0.5rem 0;">
                 {{ player_episode.title }}
                 <span id="player-id" style="display: none;">{{player_episode.pk}}</span>
               </p>
