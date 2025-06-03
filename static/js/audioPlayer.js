@@ -1,5 +1,6 @@
 import { CONSTANTS, state } from './base.js';
 import ApiService from './apiService.js';
+import { safeGetElement } from './utils.js';
 
 /**
  * AudioPlayer class handles all audio playback functionality
@@ -242,6 +243,7 @@ class AudioPlayer {
     
     // Update playback rate in state
     state.playbackRate = this.audio.playbackRate;
+    safeGetElement('playback-rate-label').textContent = `${state.playbackRate}x`;
     state.lastRecordedPlaybackTime = currentTime;
 
     
