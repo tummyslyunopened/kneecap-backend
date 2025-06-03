@@ -84,14 +84,10 @@ class AudioPlayer {
     if (this.errorCount < this.maxRetries) {
       // Try to recover by seeking back a bit
       this.audio.currentTime = Math.max(0, this.audio.currentTime - 10);
-      // Log memory state when error occurs
-      this.logMemoryHistory();
     } else {
       // If too many errors, pause and alert
       this.audio.pause();
       alert('Audio playback error. Please refresh the page and try again.');
-      // Log final memory state
-      this.logMemoryHistory();
     }
   }
 
@@ -213,8 +209,6 @@ class AudioPlayer {
     this.audio.currentTime = newTime;
     // Reset error count when skipping
     this.errorCount = 0;
-    // Log memory usage when skipping
-    this.checkMemoryUsage();
   }
 
   adjustVolume(delta) {
