@@ -1,14 +1,35 @@
-FROM ghcr.io/astral-sh/uv:python3.13-alpine AS base
+# Build stage
+FROM ghcr.io/astral-sh/uv:python3.13-alpine AS builder
+
+# Install system dependencies
+RUN apk add --no-cache ffmpeg
+
+# Set up virtual environment
 ENV VIRTUAL_ENV=/app/.venv
-RUN apk add ffmpeg  
-FROM base AS builder 
+RUN python -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Install Python dependencies
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
-RUN uv venv
-RUN uv sync --frozen
-FROM base AS runtime 
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+RUN uv pip install --no-deps .
+
+# Runtime stage
+FROM ghcr.io/astral-sh/uv:python3.13-alpine AS runtime
+
+# Install runtime system dependencies
+RUN apk add --no-cache ffmpeg
+
+# Copy virtual environment from builder
+ENV VIRTUAL_ENV=/app/.venv
+COPY --from=builder $VIRTUAL_ENV $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Set up application
 WORKDIR /app
-COPY . .    
+COPY . .
+
+# Make entrypoint executable and set it as the entrypoint
 RUN chmod +x ./entrypoint.sh
+
 ENTRYPOINT ["./entrypoint.sh"]
