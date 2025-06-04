@@ -8,12 +8,18 @@ import { safeGetElement } from './utils.js';
 class AudioPlayer {
   constructor() {
     this.audio = document.getElementById('player-audio');
+    
     this.progressContainer = document.querySelector('.progress-container');
     this.progressBar = document.querySelector('.progress-bar');
     this.progressHandle = document.querySelector('.progress-handle');
     this.currentTime = document.querySelector('.current-time');
     this.duration = document.querySelector('.duration');
     this.playButton = document.querySelector('.play-button');
+    
+    // Playback rate controls
+    this.increasePlaybackRateButton = document.querySelector('.increase-playback-rate');
+    this.decreasePlaybackRateButton = document.querySelector('.decrease-playback-rate');
+
     this.errorCount = 0;
     this.maxRetries = 3;
     this.lastSeekTime = 0;
@@ -47,9 +53,32 @@ class AudioPlayer {
 
   bindEvents() {
     // Playback controls
-    this.playButton?.addEventListener('click', () => this.togglePlay());
-    this.progressContainer?.addEventListener('click', (e) => this.seek(e));
+    this.playButton?.addEventListener('click', () => {
+      this.togglePlay();
+    });
+    
+    this.progressContainer?.addEventListener('click', (e) => {
+      this.seek(e);
+    });
+    
     this.progressHandle?.addEventListener('mousedown', this.startDrag.bind(this));
+    
+    // Playback rate controls
+    const handleRateIncrease = () => {
+      this.adjustPlaybackRate(0.25);
+    };
+    
+    const handleRateDecrease = () => {
+      this.adjustPlaybackRate(-0.25);
+    };
+    
+    if (this.increasePlaybackRateButton) {
+      this.increasePlaybackRateButton.addEventListener('click', handleRateIncrease);
+    }
+    
+    if (this.decreasePlaybackRateButton) {
+      this.decreasePlaybackRateButton.addEventListener('click', handleRateDecrease);
+    }
     
     // Audio element events
     const events = [
@@ -212,9 +241,62 @@ class AudioPlayer {
     this.errorCount = 0;
   }
 
-  adjustVolume(delta) {
+  adjustVolume(change) {
     if (!this.audio) return;
-    this.audio.volume = Math.max(0, Math.min(1, this.audio.volume + delta));
+    this.audio.volume = Math.min(1, Math.max(0, this.audio.volume + change));
+  }
+
+  /**
+   * Adjusts the playback rate by the specified increment
+   * @param {number} increment - The amount to adjust the playback rate by (can be positive or negative)
+   */
+  adjustPlaybackRate(increment) {
+    if (!this.audio) {
+      return;
+    }
+    
+    // Define the range of allowed playback rates
+    const minRate = 0.5;
+    const maxRate = 3.0;
+    const step = 0.25;
+    
+    // Calculate new rate and round to nearest step to avoid floating point precision issues
+    let newRate = Math.round((this.audio.playbackRate + increment) / step) * step;
+    
+    // Clamp the value within allowed range
+    newRate = Math.min(maxRate, Math.max(minRate, newRate));
+    
+    // Only update if rate has changed
+    if (newRate !== this.audio.playbackRate) {
+      this.audio.playbackRate = newRate;
+      this.updatePlaybackRateDisplay();
+    } else {
+      console.log('Playback rate unchanged');
+    }
+  }
+
+  /**
+   * Updates the UI to reflect the current playback rate
+   */
+  updatePlaybackRateDisplay() {
+    console.log('Updating playback rate display');
+    
+    if (!this.audio) {
+      console.error('No audio element for rate display');
+      return;
+    }
+    
+    // Update any UI elements that show playback rate
+    const rateDisplay = document.querySelector('.playback-rate-display');
+    console.log('Rate display element:', rateDisplay);
+    
+    if (rateDisplay) {
+      const rateText = `${this.audio.playbackRate.toFixed(2)}x`;
+      console.log('Setting rate display text to:', rateText);
+      rateDisplay.textContent = rateText;
+    } else {
+      console.warn('No element with class "playback-rate-display" found');
+    }
   }
 
   /**
