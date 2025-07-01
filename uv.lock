@@ -386,15 +386,10 @@ dependencies = [
 [package.optional-dependencies]
 dev = [
     { name = "coverage" },
-    { name = "pre-commit" },
-    { name = "ruff" },
-]
-
-[package.dev-dependencies]
-dev = [
     { name = "icecream" },
     { name = "playwright" },
     { name = "pre-commit" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -405,6 +400,8 @@ requires-dist = [
     { name = "django-solo", specifier = ">=2.4.0" },
     { name = "djangorestframework", specifier = ">=3.15.2" },
     { name = "feedparser", specifier = ">=6.0.11" },
+    { name = "icecream", marker = "extra == 'dev'", specifier = ">=2.1.4" },
+    { name = "playwright", marker = "extra == 'dev'", specifier = ">=1.52.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.0.1" },
     { name = "python-dateutil", specifier = ">=2.9.0" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
@@ -415,13 +412,6 @@ requires-dist = [
     { name = "tqdm", specifier = ">=4.67.1" },
 ]
 provides-extras = ["dev"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "icecream", specifier = ">=2.1.4" },
-    { name = "playwright", specifier = ">=1.52.0" },
-    { name = "pre-commit", specifier = ">=4.0.1" },
-]
 
 [[package]]
 name = "markupsafe"

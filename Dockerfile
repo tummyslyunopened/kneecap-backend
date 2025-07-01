@@ -12,7 +12,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # Install Python dependencies
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
-RUN uv pip install --no-deps .
+# Sync only production dependencies (no dev dependencies)
+RUN uv sync
 
 # Runtime stage
 FROM ghcr.io/astral-sh/uv:python3.13-alpine AS runtime
