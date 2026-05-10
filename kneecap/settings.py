@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 import logging
 from dotenv import load_dotenv
 
@@ -27,9 +28,9 @@ def validate_env(env_name, default=None, blank=False, bool=False, redact=True):
     return declared_env if declared_env is not None else default
 
 
-DEBUG = True
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROD = validate_env("PROD", default=False, bool=True)
+DEBUG = not PROD
 if not PROD:
     load_dotenv(dotenv_path=os.path.join(BASE_DIR, ".dev", ".env"), override=True)
 
@@ -54,9 +55,9 @@ READER_DB_PATH = validate_env(
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static/")
 ]  # validate_env("STATIC_DIR", default=os.path.join(BASE_DIR, "static/"), redact=False)
-ALLOWED_HOSTS = [
-    SITE_URL
-]  # [validate_env("ALLOWED_HOST", default="localhost:8000", redact=False)]
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+_site_parsed = urlparse(SITE_URL if "://" in SITE_URL else f"//{SITE_URL}", scheme="")
+ALLOWED_HOSTS = [(_site_parsed.hostname or SITE_URL).lower()]
 STATIC_URL = "/static/"  # validate_env("STATIC_URL", default="/static/", redact=False)
 MEDIA_URL = "/media/"  # validate_env("MEDIA_URL", default="/media/", redact=False)
 
@@ -80,6 +81,7 @@ INSTALLED_APPS = [
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

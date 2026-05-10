@@ -20,6 +20,8 @@ dependencies = [
     "reader>=3.17",
     "python-ffmpeg>=2.0.12",
     "tqdm>=4.67.1",
+    "gunicorn>=23.0.0",
+    "whitenoise>=6.7.0",
 ]
 
 
