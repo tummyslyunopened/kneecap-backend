@@ -350,3 +350,69 @@
 .queue-summary-mobile {
   padding-top: 50px;
 }
+
+.timeline {
+  padding-bottom: 60px;
+}
+
+.timeline-day-header {
+  background-color: #1b1340;
+  color: #fff;
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 1rem;
+  position: sticky;
+  top: 44px;
+  z-index: 100;
+}
+
+.timeline-minute {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #ccc;
+  background-color: #e5e0f8;
+  transition: background-color 0.3s ease;
+  padding: 8px 12px;
+  gap: 12px;
+}
+
+.timeline-minute:hover {
+  background-color: #d1c9f0;
+}
+
+.timeline-minute-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.timeline-minute-time {
+  font-family: monospace;
+  font-weight: bold;
+  color: #1b1340;
+  font-size: 0.95rem;
+}
+
+.timeline-minute-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timeline-minute-episode {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #333;
+}
+
+.timeline-minute-meta {
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.timeline-empty {
+  background-color: #e5e0f8;
+}

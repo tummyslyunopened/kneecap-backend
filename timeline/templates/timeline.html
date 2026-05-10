@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Timeline{% endblock %}
+{% block content %}
+<div class="main-content">
+  <div style="display: flex; flex-direction: row;">
+    <div class="feed-col">
+      <div class="sticky-header">
+        <a href="/" class="btn btn-secondary" target="_self">Feed</a>
+        <span style="color: #fff; padding: 0 12px;">Timeline</span>
+        <span style="color: #fff; padding: 0 12px;">{{ total_minutes }} minutes</span>
+      </div>
+
+      <div id="timeline" class="timeline">
+        {% if days %}
+          {% for day in days %}
+          <div class="timeline-day">
+            <h3 class="timeline-day-header">{{ day.day|date:"l, F j, Y" }}</h3>
+            {% for minute in day.minutes %}
+            <div class="timeline-minute" id="minute-{{ minute.pk }}">
+              <div class="image-container">
+                {% if minute.image_url %}
+                <img src="{{ minute.image_url }}" alt="Episode Image" width="60" />
+                {% endif %}
+              </div>
+              <div class="timeline-minute-body">
+                <div class="timeline-minute-time">{{ minute.time }}</div>
+                <div class="timeline-minute-title">
+                  <strong>{{ minute.episode.subscription.title }}</strong>
+                </div>
+                <div class="timeline-minute-episode">{{ minute.episode.title }}</div>
+                <div class="timeline-minute-meta">at {{ minute.playback_time_str }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="timeline-empty">
+            <p style="padding: 2rem; text-align: center;">
+              No minutes recorded yet. Start playing an episode and the timeline will fill in.
+            </p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
