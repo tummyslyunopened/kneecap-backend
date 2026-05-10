@@ -1,6 +1,5 @@
 import { CONSTANTS, state } from './base.js';
 import ApiService from './apiService.js';
-import { safeGetElement } from './utils.js';
 
 /**
  * AudioPlayer class handles all audio playback functionality
@@ -64,21 +63,8 @@ class AudioPlayer {
     this.progressHandle?.addEventListener('mousedown', this.startDrag.bind(this));
     
     // Playback rate controls
-    const handleRateIncrease = () => {
-      this.adjustPlaybackRate(0.25);
-    };
-    
-    const handleRateDecrease = () => {
-      this.adjustPlaybackRate(-0.25);
-    };
-    
-    if (this.increasePlaybackRateButton) {
-      this.increasePlaybackRateButton.addEventListener('click', handleRateIncrease);
-    }
-    
-    if (this.decreasePlaybackRateButton) {
-      this.decreasePlaybackRateButton.addEventListener('click', handleRateDecrease);
-    }
+    this.increasePlaybackRateButton?.addEventListener('click', () => this.adjustPlaybackRate(0.25));
+    this.decreasePlaybackRateButton?.addEventListener('click', () => this.adjustPlaybackRate(-0.25));
     
     // Audio element events
     const events = [
@@ -251,27 +237,23 @@ class AudioPlayer {
    * @param {number} increment - The amount to adjust the playback rate by (can be positive or negative)
    */
   adjustPlaybackRate(increment) {
-    if (!this.audio) {
-      return;
-    }
-    
-    // Define the range of allowed playback rates
+    if (!this.audio) return;
+
     const minRate = 0.5;
     const maxRate = 3.0;
     const step = 0.25;
-    
-    // Calculate new rate and round to nearest step to avoid floating point precision issues
+
     let newRate = Math.round((this.audio.playbackRate + increment) / step) * step;
-    
-    // Clamp the value within allowed range
     newRate = Math.min(maxRate, Math.max(minRate, newRate));
-    
-    // Only update if rate has changed
-    if (newRate !== this.audio.playbackRate) {
-      this.audio.playbackRate = newRate;
-      this.updatePlaybackRateDisplay();
-    } else {
-      console.log('Playback rate unchanged');
+
+    if (newRate === this.audio.playbackRate) return;
+
+    this.audio.playbackRate = newRate;
+    state.playbackRate = newRate;
+    this.updatePlaybackRateDisplay();
+
+    if (typeof window.updateQueueDuration === 'function') {
+      window.updateQueueDuration();
     }
   }
 
@@ -279,23 +261,10 @@ class AudioPlayer {
    * Updates the UI to reflect the current playback rate
    */
   updatePlaybackRateDisplay() {
-    console.log('Updating playback rate display');
-    
-    if (!this.audio) {
-      console.error('No audio element for rate display');
-      return;
-    }
-    
-    // Update any UI elements that show playback rate
+    if (!this.audio) return;
     const rateDisplay = document.querySelector('.playback-rate-display');
-    console.log('Rate display element:', rateDisplay);
-    
     if (rateDisplay) {
-      const rateText = `${this.audio.playbackRate.toFixed(2)}x`;
-      console.log('Setting rate display text to:', rateText);
-      rateDisplay.textContent = rateText;
-    } else {
-      console.warn('No element with class "playback-rate-display" found');
+      rateDisplay.textContent = `${this.audio.playbackRate.toFixed(2)}x`;
     }
   }
 
@@ -323,9 +292,11 @@ class AudioPlayer {
       return;
     }
     
-    // Update playback rate in state
-    state.playbackRate = this.audio.playbackRate;
-    safeGetElement('playback-rate-label').textContent = `${state.playbackRate}x`;
+    // Keep state in sync with the audio element in case the rate was changed elsewhere
+    if (state.playbackRate !== this.audio.playbackRate) {
+      state.playbackRate = this.audio.playbackRate;
+      this.updatePlaybackRateDisplay();
+    }
     state.lastRecordedPlaybackTime = currentTime;
 
     
